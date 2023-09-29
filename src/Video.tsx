@@ -1,19 +1,21 @@
 import 'webrtc-adapter';
-import React, { useEffect, useRef, useState } from 'react';
-import { useConnection, useEmitter } from './useMqtt';
-import { OnMessageCallback } from 'mqtt/*';
+import React, {useEffect, useRef, useState} from 'react';
+import {useConnection, useEmitter} from './useMqtt';
+import {OnMessageCallback} from 'mqtt/*';
 
 const stream = new MediaStream();
 const pc = new RTCPeerConnection({
-  iceServers: [{
-    urls: ["stun:stun.l.google.com:19302"]
-  }]
+  iceServers: [
+    {
+      urls: ['stun:stun.l.google.com:19302'],
+    },
+  ],
 });
 
 const Video: React.FunctionComponent<{
-  width: string,
-  height?: string,
-}> = ({ width, height }) => {
+  width: string;
+  height?: string;
+}> = ({width, height}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [connecting, setConnecting] = useState<boolean>(true);
   const [disconnected, setDisconnected] = useState<boolean>(false);
@@ -23,83 +25,95 @@ const Video: React.FunctionComponent<{
 
   useEffect(() => {
     if (!videoRef.current || !mqttConnection || !mqttEmitter) {
-      return () => { };
+      return () => {};
     }
 
-    pc.addTransceiver('video', { direction: 'recvonly' });
-    pc.addTransceiver('audio', { direction: 'recvonly' });
+    pc.addTransceiver('video', {direction: 'recvonly'});
+    pc.addTransceiver('audio', {direction: 'recvonly'});
 
-    pc.ontrack = (event) => {
+    pc.ontrack = event => {
       console.log('Got track', event.track);
       stream.addTrack(event.track);
       videoRef.current!.srcObject = stream;
-    }
+    };
 
-    pc.onicecandidate = async (event) => {
+    pc.onicecandidate = async event => {
       console.log('onicecandidate', event);
-    }
+    };
 
     pc.onicegatheringstatechange = async () => {
       switch (pc.iceGatheringState) {
-        case "gathering":
-          console.log("gathering")
+        case 'gathering':
+          console.log('gathering');
           break;
-        case "complete":
-          await mqttConnection.publishAsync(`webrtc/${sessionId}/offer`, pc.localDescription!.sdp!);
+        case 'complete':
+          await mqttConnection.publishAsync(
+            `webrtc/${sessionId}/offer`,
+            pc.localDescription!.sdp!
+          );
           break;
       }
-    }
+    };
 
     pc.onnegotiationneeded = async () => {
       console.log('onnegotiationneeded');
-      let offer = await pc.createOffer();
+      const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-    }
+    };
 
-    pc.onconnectionstatechange = (e) => {
+    pc.onconnectionstatechange = e => {
       console.log('onconnectionstatechange', e, pc.connectionState);
       if (pc.connectionState === 'connected') {
         setConnecting(false);
-      }
-      else if (pc.connectionState === 'disconnected') {
+      } else if (pc.connectionState === 'disconnected') {
         setDisconnected(true);
       }
-    }
+    };
 
     const topic = `webrtc/${sessionId}/answer`;
     mqttConnection.subscribe(topic);
 
-    const handler: OnMessageCallback = async (payload) => {
+    const handler: OnMessageCallback = async payload => {
       console.log('Got answer', payload.toString());
       try {
-        await pc.setRemoteDescription(new RTCSessionDescription({
-          type: 'answer',
-          sdp: payload.toString(),
-        }))
+        await pc.setRemoteDescription(
+          new RTCSessionDescription({
+            type: 'answer',
+            sdp: payload.toString(),
+          })
+        );
         videoRef.current!.muted = false;
-      }
-      catch (e) {
+      } catch (e) {
         console.error(e);
       }
-    }
+    };
     mqttEmitter.on(topic, handler);
 
     return () => {
       mqttEmitter.removeListener(topic, handler);
       mqttConnection.unsubscribe(topic);
-    }
+    };
   }, [videoRef, setDisconnected, mqttConnection, mqttEmitter, sessionId]);
 
   if (disconnected) {
-    return <span>WebRTC has disconnected. Refresh to try again.</span>
+    return <span>WebRTC has disconnected. Refresh to try again.</span>;
   }
 
   return (
     <>
       {connecting && <span>Connecting...</span>}
-      <video ref={videoRef} width={width} height={height} autoPlay controls={true} muted playsInline style={{ display: connecting ? 'hidden' : 'block' }} />
+      <video
+        ref={videoRef}
+        width={width}
+        height={height}
+        autoPlay
+        controls={true}
+        muted
+        playsInline
+        style={{display: connecting ? 'hidden' : 'block'}}
+      />
     </>
-  )
-}
+  );
+};
 
 export default Video;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
 export type GamepadState = {
   // Button 1
@@ -49,13 +49,13 @@ export const useGamepadState = (index: number) => {
 
               ButtonBumperLeft: gamepad.buttons[4].pressed,
               ButtonBumperRight: gamepad.buttons[5].pressed,
-              
+
               ButtonThumbLeft: gamepad.buttons[10].pressed,
               ButtonThumbRight: gamepad.buttons[11].pressed,
 
               ButtonSelect: gamepad.buttons[8].pressed,
               ButtonStart: gamepad.buttons[9].pressed,
-              
+
               ButtonDpadUp: gamepad.buttons[12].pressed,
               ButtonDpadDown: gamepad.buttons[13].pressed,
               ButtonDpadLeft: gamepad.buttons[14].pressed,

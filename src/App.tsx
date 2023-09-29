@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
-import { MQTTConnectionProvider } from './useMqtt';
-import { Gamepad } from './Gamepad';
+import {MQTTConnectionProvider} from './useMqtt';
+import {Gamepad} from './Gamepad';
 import Video from './Video';
 
 function App() {

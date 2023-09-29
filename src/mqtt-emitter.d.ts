@@ -1,9 +1,8 @@
-
 declare module 'mqtt-emitter' {
-    
-  import EventEmitter from "events";
+  import type {MqttClient} from 'mqtt/*';
+  import EventEmitter from 'events';
   export default class MQTTEmitter extends EventEmitter {
-      public onadd: any;
-      public onremove: any;
+    public onadd: typeof MqttClient.prototype.subscribe;
+    public onremove: typeof MqttClient.prototype.unsubscribe;
   }
 }

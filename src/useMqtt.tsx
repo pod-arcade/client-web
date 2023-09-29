@@ -1,12 +1,14 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import * as mqtt from 'mqtt';
 import MQTTEmitter from 'mqtt-emitter';
 
-type ContextValue = { client: mqtt.MqttClient; emitter: MQTTEmitter } | null;
+type ContextValue = {client: mqtt.MqttClient; emitter: MQTTEmitter} | null;
 const ConnectionContext = React.createContext<ContextValue>(null);
 ConnectionContext.displayName = 'MQTT';
 
-export const MQTTConnectionProvider: React.FunctionComponent<React.PropsWithChildren> = (props) => {
+export const MQTTConnectionProvider: React.FunctionComponent<
+  React.PropsWithChildren
+> = props => {
   const [value, setValue] = useState<ContextValue>(null);
   useEffect(() => {
     if (!value) {
@@ -55,7 +57,7 @@ export function useLatestMessageFromSubscription<T extends object>(
 
   useEffect(() => {
     if (connection && emitter) {
-      const handler: mqtt.OnMessageCallback = (data) => {
+      const handler: mqtt.OnMessageCallback = data => {
         setLatestMessage(JSON.parse(data.toString()));
       };
       emitter.on(topic, handler);

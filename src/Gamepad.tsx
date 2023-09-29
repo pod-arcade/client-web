@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useConnection } from './useMqtt';
-import { GamepadState, useGamepadState } from './useGamepad';
-
+import React, {useEffect, useState} from 'react';
+import {useConnection} from './useMqtt';
+import {GamepadState, useGamepadState} from './useGamepad';
 
 function gamepadStateToBuffer(gamepadState: GamepadState): Buffer {
-  const buffer = Buffer.alloc(2 + (4 * 6));
+  const buffer = Buffer.alloc(2 + 4 * 6);
   buffer[0] |= +gamepadState.ButtonNorth << 0;
   buffer[0] |= +gamepadState.ButtonSouth << 1;
   buffer[0] |= +gamepadState.ButtonWest << 2;
@@ -38,7 +37,7 @@ function gamepadStateToBuffer(gamepadState: GamepadState): Buffer {
   return buffer;
 }
 
-export const Gamepad: React.FC<{ index: number }> = ({ index }) => {
+export const Gamepad: React.FC<{index: number}> = ({index}) => {
   const connection = useConnection();
   const gamepad = useGamepadState(index);
   const [previousMessage, setPreviousMessage] = useState<null | Buffer>(null);
@@ -56,14 +55,12 @@ export const Gamepad: React.FC<{ index: number }> = ({ index }) => {
       }
       setPreviousMessage(newMessage);
     }
-  }, [connection, index, gamepad, previousMessage])
+  }, [connection, index, gamepad, previousMessage]);
 
   return (
     <section>
       <h2>Gamepad {index}</h2>
-      <pre style={{ textAlign: 'left' }}>
-        {JSON.stringify(gamepad, null, 2)}
-      </pre>
+      <pre style={{textAlign: 'left'}}>{JSON.stringify(gamepad, null, 2)}</pre>
     </section>
   );
-}
+};
