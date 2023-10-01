@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {useConnection} from './useMqtt';
-import {GamepadState, useGamepadState} from './useGamepad';
+import {useConnection} from '../hooks/useMqtt';
+import {GamepadState, useGamepadState} from '../hooks/useGamepad';
 
 function gamepadStateToBuffer(gamepadState: GamepadState): Buffer {
   const buffer = Buffer.alloc(2 + 4 * 6);

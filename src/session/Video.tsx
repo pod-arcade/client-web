@@ -1,7 +1,7 @@
 import 'webrtc-adapter';
 import React, {useEffect, useRef, useState} from 'react';
-import {useConnection, useEmitter} from './useMqtt';
-import {OnMessageCallback} from 'mqtt/*';
+import {useConnection, useEmitter} from '../hooks/useMqtt';
+import {SubscriptionCallback} from 'mqtt-emitter';
 
 const stream = new MediaStream();
 const pc = new RTCPeerConnection({
@@ -73,7 +73,7 @@ const Video: React.FunctionComponent<{
     const topic = `webrtc/${sessionId}/answer`;
     mqttConnection.subscribe(topic);
 
-    const handler: OnMessageCallback = async payload => {
+    const handler: SubscriptionCallback<string> = async payload => {
       console.log('Got answer', payload.toString());
       try {
         await pc.setRemoteDescription(
