@@ -6,6 +6,7 @@ import {
 } from '../session/usePeerConnection';
 import {useRandomId} from '../hooks/useRandomId';
 import Video from '../session/Video';
+import {Gamepad} from '../session/Gamepad';
 
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
@@ -13,6 +14,7 @@ import IconButton from '@mui/material/IconButton';
 
 import VolumeUp from '@mui/icons-material/VolumeUp';
 import VolumeMute from '@mui/icons-material/VolumeMute';
+import {DarkPurple} from '../theme';
 
 const SessionPage: React.FC = () => {
   const {desktopId} = useParams<{desktopId: string}>();
@@ -33,6 +35,8 @@ const SessionPage: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
+        background: DarkPurple,
+        margin: '1rem',
       }}
     >
       <Video
@@ -44,14 +48,24 @@ const SessionPage: React.FC = () => {
         sx={{
           display: 'flex',
           flexDirection: 'row',
-          alignItems: 'space-between',
+          alignItems: 'center',
           justifyContent: 'center',
           width: '100%',
           padding: '0 1rem',
+          height: '4rem',
         }}
       >
         <Box sx={{flexGrow: 1}}>
           Session #{sessionId}: {peerConnectionState}
+        </Box>
+        <Box>
+          {[0, 1, 2, 3].map(index => (
+            <Gamepad
+              key={index}
+              index={index}
+              peerConnection={peerConnection}
+            />
+          ))}
         </Box>
         <Box
           sx={{

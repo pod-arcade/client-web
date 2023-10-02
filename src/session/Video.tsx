@@ -22,6 +22,7 @@ const Video: React.FunctionComponent<{
     ) {
       return;
     }
+    console.log('addTransceiver');
     peerConnection.addTransceiver('video', {
       direction: 'recvonly',
       streams: [videoStream],
