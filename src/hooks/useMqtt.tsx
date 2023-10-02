@@ -1,38 +1,64 @@
 import React, {useEffect, useState, useContext} from 'react';
 import * as mqtt from 'mqtt';
 import MQTTEmitter, {SubscriptionCallback} from 'mqtt-emitter';
+import {useRandomId} from './useRandomId';
 
 type ContextValue = {client: mqtt.MqttClient; emitter: MQTTEmitter} | null;
 const ConnectionContext = React.createContext<ContextValue>(null);
 ConnectionContext.displayName = 'MQTT';
 
+const MQTT_URL = `wss://${window.location.host}/mqtt`;
+
+export const useMqttConnection = (offlineTopic: string | null = null) => {
+  const [value, setValue] = useState<ContextValue>(null);
+  const connectionId = useRandomId();
+  useEffect(() => {
+    let url = MQTT_URL;
+    if (window.location.protocol.indexOf('https:') !== 0) {
+      url = url.replace('wss:', 'ws:');
+    }
+    console.log(`mqtt ${connectionId} connecting to`, url);
+    const client = mqtt.connect(url, {
+      username: 'web', // TODO
+      password: 'todo', // TODO,
+      clientId: `user:${connectionId}`,
+      clean: false,
+      will: offlineTopic
+        ? {
+            topic: offlineTopic,
+            payload: Buffer.from('offline'),
+            qos: 1,
+            retain: true,
+          }
+        : undefined,
+    });
+    const emitter = new MQTTEmitter();
+    client.on('message', emitter.emit.bind(emitter));
+    client.on('packetsend', p =>
+      console.log(`mqtt ${connectionId} packetsend`, p)
+    );
+    client.on('packetreceive', p =>
+      console.log(`mqtt ${connectionId} packetreceive`, p)
+    );
+    emitter.onadd = client.subscribe.bind(client);
+    emitter.onremove = client.unsubscribe.bind(client);
+    setValue({
+      client,
+      emitter,
+    });
+    return () => {
+      console.log('mqtt disconnecting');
+      client.end();
+    };
+  }, []);
+
+  return value;
+};
+
 export const MQTTConnectionProvider: React.FunctionComponent<
   React.PropsWithChildren
 > = props => {
-  const [value, setValue] = useState<ContextValue>(null);
-  useEffect(() => {
-    if (!value) {
-      let url = `wss://${window.location.host}/mqtt`;
-      if (window.location.protocol.indexOf('https:') !== 0) {
-        url = url.replace('wss:', 'ws:');
-      }
-      const client = mqtt.connect(url, {
-        username: 'web',
-      });
-      const emitter = new MQTTEmitter();
-      client.on('connect', () => console.log('mqtt connected'));
-      client.on('disconnect', () => console.log('mqtt disconnected'));
-      client.on('message', emitter.emit.bind(emitter));
-      client.on('packetsend', p => console.log('mqtt packetsend', p));
-      client.on('packetreceive', p => console.log('mqtt packetreceive', p));
-      emitter.onadd = client.subscribe.bind(client);
-      emitter.onremove = client.unsubscribe.bind(client);
-      setValue({
-        client,
-        emitter,
-      });
-    }
-  }, [value]);
+  const value = useMqttConnection();
 
   return (
     <ConnectionContext.Provider value={value}>
@@ -42,7 +68,28 @@ export const MQTTConnectionProvider: React.FunctionComponent<
 };
 
 export function useConnection() {
-  return useContext(ConnectionContext)?.client;
+  return useContext(ConnectionContext)?.client ?? null;
+}
+
+export function useConnectionConnected(connection: mqtt.MqttClient | null) {
+  const [connected, setConnected] = useState<boolean>(false);
+  useEffect(() => {
+    if (connection) {
+      setConnected(connection.connected);
+      const handler = () => {
+        setConnected(connection.connected);
+      };
+      connection.on('connect', handler);
+      connection.on('reconnect', handler);
+      connection.on('disconnect', handler);
+      return () => {
+        connection.removeListener('connect', handler);
+        connection.removeListener('disconnect', handler);
+      };
+    }
+  }, [connection]);
+
+  return connected;
 }
 
 export function useEmitter() {
@@ -67,7 +114,6 @@ export function useLatestMessageFromSubscriptionByTopic<T = Uint8Array>(
           [topic]: data,
         });
       };
-      console.log('subscribing to', topic);
       emitter.on(topic, handler);
       return () => {
         emitter.removeListener(topic, handler);

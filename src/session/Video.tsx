@@ -1,117 +1,84 @@
 import 'webrtc-adapter';
 import React, {useEffect, useRef, useState} from 'react';
-import {useConnection, useEmitter} from '../hooks/useMqtt';
-import {SubscriptionCallback} from 'mqtt-emitter';
-
-const stream = new MediaStream();
-const pc = new RTCPeerConnection({
-  iceServers: [
-    {
-      urls: ['stun:stun.l.google.com:19302'],
-    },
-  ],
-});
+import {usePeerConnectionState} from './usePeerConnection';
 
 const Video: React.FunctionComponent<{
   width: string;
   height?: string;
-}> = ({width, height}) => {
+  peerConnection: RTCPeerConnection;
+  volume: number;
+}> = ({width, height, peerConnection, volume}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [connecting, setConnecting] = useState<boolean>(true);
-  const [disconnected, setDisconnected] = useState<boolean>(false);
-  const mqttConnection = useConnection();
-  const mqttEmitter = useEmitter();
-  const [sessionId] = useState<string>(Math.random().toString(36).substring(7));
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const peerConnectionState = usePeerConnectionState(peerConnection);
+
+  const [videoStream] = useState(new MediaStream());
+  const [audioStream] = useState(new MediaStream());
 
   useEffect(() => {
-    if (!videoRef.current || !mqttConnection || !mqttEmitter) {
-      return () => {};
+    if (
+      peerConnectionState === 'closed' ||
+      peerConnection.signalingState === 'closed'
+    ) {
+      return;
     }
+    peerConnection.addTransceiver('video', {
+      direction: 'recvonly',
+      streams: [videoStream],
+    });
 
-    pc.addTransceiver('video', {direction: 'recvonly'});
-    pc.addTransceiver('audio', {direction: 'recvonly'});
+    peerConnection.addTransceiver('audio', {
+      direction: 'recvonly',
+      streams: [audioStream],
+    });
 
-    pc.ontrack = event => {
-      console.log('Got track', event.track);
-      stream.addTrack(event.track);
-      videoRef.current!.srcObject = stream;
-    };
-
-    pc.onicecandidate = async event => {
-      console.log('onicecandidate', event);
-    };
-
-    pc.onicegatheringstatechange = async () => {
-      switch (pc.iceGatheringState) {
-        case 'gathering':
-          console.log('gathering');
-          break;
-        case 'complete':
-          await mqttConnection.publishAsync(
-            `webrtc/${sessionId}/offer`,
-            pc.localDescription!.sdp!
-          );
-          break;
+    const handler = (event: RTCTrackEvent) => {
+      if (event.track.kind === 'video') {
+        videoStream.addTrack(event.track);
+      } else {
+        audioStream.addTrack(event.track);
       }
     };
 
-    pc.onnegotiationneeded = async () => {
-      console.log('onnegotiationneeded');
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-    };
+    peerConnection.addEventListener('track', handler);
 
-    pc.onconnectionstatechange = e => {
-      console.log('onconnectionstatechange', e, pc.connectionState);
-      if (pc.connectionState === 'connected') {
-        setConnecting(false);
-      } else if (pc.connectionState === 'disconnected') {
-        setDisconnected(true);
-      }
-    };
-
-    const topic = `webrtc/${sessionId}/answer`;
-    mqttConnection.subscribe(topic);
-
-    const handler: SubscriptionCallback<string> = async payload => {
-      console.log('Got answer', payload.toString());
-      try {
-        await pc.setRemoteDescription(
-          new RTCSessionDescription({
-            type: 'answer',
-            sdp: payload.toString(),
-          })
-        );
-        videoRef.current!.muted = false;
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    mqttEmitter.on(topic, handler);
-
+    console.log('Adding streams');
     return () => {
-      mqttEmitter.removeListener(topic, handler);
-      mqttConnection.unsubscribe(topic);
+      console.log('Removing streams');
+      peerConnection.removeEventListener('track', handler);
     };
-  }, [videoRef, setDisconnected, mqttConnection, mqttEmitter, sessionId]);
+  }, [peerConnection, peerConnectionState]);
 
-  if (disconnected) {
-    return <span>WebRTC has disconnected. Refresh to try again.</span>;
-  }
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.srcObject = audioStream;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = videoStream;
+    }
+  }, [videoRef, audioRef]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [audioRef, volume]);
 
   return (
     <>
-      {connecting && <span>Connecting...</span>}
       <video
         ref={videoRef}
         width={width}
         height={height}
-        autoPlay
-        controls={true}
-        muted
-        playsInline
-        style={{display: connecting ? 'hidden' : 'block'}}
+        autoPlay={true}
+        controls={false}
+        muted={true}
+        playsInline={true}
+        style={{
+          display: peerConnectionState !== 'connected' ? 'hidden' : 'block',
+        }}
       />
+      <audio ref={audioRef} autoPlay={true} controls={false} muted={false} />
     </>
   );
 };

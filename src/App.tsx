@@ -1,16 +1,51 @@
 import React from 'react';
-import './App.css';
-import {MQTTConnectionProvider} from './hooks/useMqtt';
+import {
+  MQTTConnectionProvider,
+  useConnection,
+  useConnectionConnected,
+} from './hooks/useMqtt';
 import {Outlet} from 'react-router-dom';
 
-function App() {
+import {ThemeProvider} from '@emotion/react';
+import CssBaseline from '@mui/material/CssBaseline';
+
+import CircularProgress from '@mui/material/CircularProgress';
+import Backdrop from '@mui/material/Backdrop';
+
+import theme from './theme';
+
+const ContextProviders: React.FC<React.PropsWithChildren> = ({children}) => {
   return (
-    <div className="App">
-      <MQTTConnectionProvider>
-        <Outlet />
-      </MQTTConnectionProvider>
-    </div>
+    <MQTTConnectionProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        {children}
+      </ThemeProvider>
+    </MQTTConnectionProvider>
   );
-}
+};
+
+const ConnectionHandler: React.FC<React.PropsWithChildren> = ({children}) => {
+  const connection = useConnection();
+  const connected = useConnectionConnected(connection);
+  return (
+    <>
+      <Backdrop open={!connected}>
+        <CircularProgress variant="indeterminate" />
+      </Backdrop>
+      {children}
+    </>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ContextProviders>
+      <ConnectionHandler>
+        <Outlet />
+      </ConnectionHandler>
+    </ContextProviders>
+  );
+};
 
 export default App;
