@@ -37,6 +37,7 @@ const SessionPage: React.FC = () => {
         height: '100%',
         background: DarkPurple,
         margin: '1rem',
+        borderRadius: '0.5rem',
       }}
     >
       <Video
