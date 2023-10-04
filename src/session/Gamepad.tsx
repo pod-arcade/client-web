@@ -9,6 +9,7 @@ import Popover from '@mui/material/Popover';
 import Badge from '@mui/material/Badge';
 
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
+import BlockIcon from '@mui/icons-material/Block';
 
 export const Gamepad: React.FC<{
   index: number;
@@ -20,7 +21,7 @@ export const Gamepad: React.FC<{
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
     null
   );
-  const [serverIndex, setServerIndex] = useState(index); // TODO: read from local storage
+  const [serverIndex, setServerIndex] = useState<number | null>(index); // TODO: read from local storage
 
   useEffect(() => {
     if (!gamepad) {
@@ -32,7 +33,11 @@ export const Gamepad: React.FC<{
 
     const newMessage = gamepadStateToBuffer(gamepad);
     if (previousMessage?.toString('base64') !== newMessage.toString('base64')) {
-      if (dataChannel && dataChannel.readyState === 'open') {
+      if (
+        dataChannel &&
+        dataChannel.readyState === 'open' &&
+        serverIndex !== null
+      ) {
         const payload = Buffer.alloc(newMessage.length + 2);
         newMessage.copy(payload, 2);
         payload.writeUInt8(InputType.GAMEPAD, 0);
@@ -46,6 +51,8 @@ export const Gamepad: React.FC<{
 
   if (!dataChannel) return null;
 
+  const showBadge = previousMessage !== null && serverIndex !== null;
+
   return (
     <>
       <Popover
@@ -56,7 +63,7 @@ export const Gamepad: React.FC<{
         onClose={() => setAnchorEl(null)}
       >
         <ButtonGroup size="small">
-          {[0, 1, 2, 3].map(i => (
+          {[0, 1, 2, 3, null].map(i => (
             <Button
               key={i}
               variant={i === serverIndex ? 'contained' : 'outlined'}
@@ -65,15 +72,16 @@ export const Gamepad: React.FC<{
                 setAnchorEl(null);
               }}
             >
-              {i}
+              {i !== null ? i : <BlockIcon />}
             </Button>
           ))}
         </ButtonGroup>
       </Popover>
       <Badge
-        badgeContent={previousMessage !== null ? serverIndex.toString() : ' '}
+        // variant={serverIndex === null ? 'dot' : 'standard'}
+        badgeContent={showBadge ? serverIndex.toString() : ' '}
         overlap="circular"
-        color={previousMessage !== null ? 'primary' : 'default'}
+        color={showBadge ? 'primary' : 'default'}
       >
         <IconButton onClick={e => setAnchorEl(e.currentTarget)}>
           <SportsEsportsIcon
