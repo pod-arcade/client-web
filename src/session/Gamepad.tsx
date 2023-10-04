@@ -90,7 +90,5 @@ export const Gamepad: React.FC<{
         </IconButton>
       </Badge>
     </>
-    // <h2>Gamepad {index}</h2>
-    // <pre style={{textAlign: 'left'}}>{JSON.stringify(gamepad, null, 2)}</pre>
   );
 };

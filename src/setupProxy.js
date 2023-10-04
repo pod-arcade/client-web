@@ -9,6 +9,7 @@ module.exports = function (app) {
         target: process.env.PROXY_HOST,
         logLevel: 'debug',
         ws: true,
+        changeOrigin: true,
       })
     );
   }

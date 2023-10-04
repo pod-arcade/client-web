@@ -6,9 +6,12 @@ import CardMedia from '@mui/material/CardMedia';
 import CardHeader from '@mui/material/CardHeader';
 import CardActions from '@mui/material/CardActions';
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Link from '@mui/material/Link';
 
 import LinkButton from '../partials/LinkButton';
 import {DarkPurple} from '../theme';
+import {CardContent} from '@mui/material';
 
 export function useDesktopStatus() {
   const status = useLatestMessageFromSubscriptionByTopic<Uint8Array | null>(
@@ -35,8 +38,45 @@ export function useDesktopStatus() {
 const DesktopList: React.FC = () => {
   const desktops = useDesktopStatus();
 
-  if (!desktops) {
-    return null;
+  if (!desktops || !Object.keys(desktops).length) {
+    return (
+      <Card
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          background: DarkPurple,
+        }}
+      >
+        <CardContent>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+            }}
+          >
+            <img width="120px" src="/favicon.png" />
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography variant="h4" align="center">
+                Welcome to Pod-Arcade!
+              </Typography>
+              <Typography variant="subtitle1" align="center">
+                To setup you first desktop, follow the instructions in the{' '}
+                <Link href="https://github.com/pod-arcade/pod-arcade">
+                  README
+                </Link>
+                .
+              </Typography>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    );
   }
   return (
     <div>
