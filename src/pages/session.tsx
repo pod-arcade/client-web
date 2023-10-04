@@ -1,6 +1,7 @@
 import {useState} from 'react';
 import {useLinkClickHandler, useParams} from 'react-router-dom';
 import {
+  useDataChannel,
   useNegotiatedPeerConnection,
   usePeerConnectionState,
 } from '../session/usePeerConnection';
@@ -26,6 +27,8 @@ const SessionPage: React.FC = () => {
 
   const [volume, setVolume] = useState(1); // TODO: default from local storage
   const [muted, setMuted] = useState(false);
+
+  const inputChannel = useDataChannel(peerConnection);
 
   if (!peerConnection) return null;
 
@@ -91,11 +94,7 @@ const SessionPage: React.FC = () => {
           </Box>
           <Box>
             {[0, 1, 2, 3].map(index => (
-              <Gamepad
-                key={index}
-                index={index}
-                peerConnection={peerConnection}
-              />
+              <Gamepad key={index} index={index} dataChannel={inputChannel} />
             ))}
           </Box>
           <Box

@@ -12,35 +12,15 @@ import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 
 export const Gamepad: React.FC<{
   index: number;
-  peerConnection: RTCPeerConnection;
-}> = ({index, peerConnection}) => {
+  dataChannel: RTCDataChannel | null;
+}> = ({index, dataChannel}) => {
   const gamepad = useGamepadState(index);
   const [previousMessage, setPreviousMessage] = useState<null | Buffer>(null);
-  const [dataChannel, setDataChannel] = useState<RTCDataChannel | null>(null);
 
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
     null
   );
   const [serverIndex, setServerIndex] = useState(index); // TODO: read from local storage
-
-  useEffect(() => {
-    if (peerConnection.signalingState === 'closed') {
-      return;
-    }
-    try {
-      const dc = peerConnection.createDataChannel('input', {
-        id: 0,
-        negotiated: true,
-        ordered: true,
-        maxRetransmits: 10,
-        protocol: 'pod-arcade-input-v1',
-      });
-      console.log('created datachannel', dc);
-      setDataChannel(dc);
-    } catch (e) {
-      console.error('Error creating datachannel', e);
-    }
-  }, [peerConnection]);
 
   useEffect(() => {
     if (!gamepad) {
@@ -57,12 +37,14 @@ export const Gamepad: React.FC<{
         newMessage.copy(payload, 2);
         payload.writeUInt8(InputType.GAMEPAD, 0);
         payload.writeUInt8(serverIndex, 1);
-        console.log('publishing', payload.toString('hex'));
+        console.log(`Sending Input (${serverIndex})`, payload.toString('hex'));
         dataChannel.send(payload);
       }
       setPreviousMessage(newMessage);
     }
   }, [dataChannel, serverIndex, gamepad, previousMessage]);
+
+  if (!dataChannel) return null;
 
   return (
     <>

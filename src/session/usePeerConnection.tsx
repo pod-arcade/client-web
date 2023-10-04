@@ -125,3 +125,29 @@ export const usePeerConnectionState = (
 
   return value;
 };
+
+export const useDataChannel = (peerConnection: RTCPeerConnection | null) => {
+  const [dataChannel, setDataChannel] = useState<RTCDataChannel | null>(null);
+
+  useEffect(() => {
+    if (!peerConnection || peerConnection.signalingState === 'closed') {
+      return;
+    }
+
+    try {
+      const dc = peerConnection.createDataChannel('input', {
+        id: 0,
+        negotiated: true,
+        ordered: true,
+        maxRetransmits: 10,
+        protocol: 'pod-arcade-input-v1',
+      });
+      console.log('created datachannel', dc);
+      setDataChannel(dc);
+    } catch (e) {
+      console.error('Error creating datachannel', e);
+    }
+  }, [peerConnection]);
+
+  return dataChannel;
+};
