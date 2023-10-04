@@ -30,76 +30,100 @@ const SessionPage: React.FC = () => {
   return (
     <Box
       sx={{
+        position: 'relative',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: '1rem',
+        height: '100vh',
         display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        background: DarkPurple,
-        margin: '1rem',
-        borderRadius: '0.5rem',
+        width: '100vw',
       }}
     >
-      <Video
-        width="100%"
-        peerConnection={peerConnection}
-        volume={muted ? 0 : volume}
-      />
       <Box
         sx={{
+          flexGrow: 1,
           display: 'flex',
-          flexDirection: 'row',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '100%',
-          padding: '0 1rem',
-          height: '4rem',
+          background: DarkPurple,
+          borderRadius: '0.5rem',
+          height: '100%',
         }}
       >
-        <Box sx={{flexGrow: 1}}>
-          Session #{sessionId}: {peerConnectionState}
-        </Box>
-        <Box>
-          {[0, 1, 2, 3].map(index => (
-            <Gamepad
-              key={index}
-              index={index}
-              peerConnection={peerConnection}
-            />
-          ))}
+        <Box
+          sx={{
+            flexGrow: 1,
+            overflow: 'hidden',
+            width: '100%',
+          }}
+        >
+          <Video
+            width="100%"
+            height="100%"
+            peerConnection={peerConnection}
+            volume={muted ? 0 : volume}
+          />
         </Box>
         <Box
           sx={{
             display: 'flex',
-            maxWidth: '7rem',
-            width: '100%',
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
+            width: '100%',
+            padding: '0 1rem',
+            height: '4rem',
+            flexGrow: 0,
           }}
         >
-          <IconButton
-            onClick={() => {
-              setMuted(!muted);
+          <Box sx={{flexGrow: 1}}>
+            Session #{sessionId}: {peerConnectionState}
+          </Box>
+          <Box>
+            {[0, 1, 2, 3].map(index => (
+              <Gamepad
+                key={index}
+                index={index}
+                peerConnection={peerConnection}
+              />
+            ))}
+          </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              maxWidth: '7rem',
+              width: '100%',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            {muted ? (
-              <VolumeMute fontSize="small" color="secondary" />
-            ) : (
-              <VolumeUp fontSize="small" color="secondary" />
-            )}
-          </IconButton>
-          <Slider
-            sx={{width: '100%', margin: '0 0.5rem'}}
-            value={muted ? 0 : volume}
-            disabled={peerConnectionState !== 'connected' || muted}
-            color="secondary"
-            size="small"
-            min={0}
-            max={1}
-            step={0.01}
-            onChange={(_, value) => setVolume(value as number)}
-          />
+            <IconButton
+              onClick={() => {
+                setMuted(!muted);
+              }}
+            >
+              {muted ? (
+                <VolumeMute fontSize="small" color="secondary" />
+              ) : (
+                <VolumeUp fontSize="small" color="secondary" />
+              )}
+            </IconButton>
+            <Slider
+              sx={{width: '100%', margin: '0 0.5rem'}}
+              value={muted ? 0 : volume}
+              disabled={peerConnectionState !== 'connected' || muted}
+              color="secondary"
+              size="small"
+              min={0}
+              max={1}
+              step={0.01}
+              onChange={(_, value) => setVolume(value as number)}
+            />
+          </Box>
         </Box>
       </Box>
     </Box>

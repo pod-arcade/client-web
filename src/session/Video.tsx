@@ -1,8 +1,6 @@
 import 'webrtc-adapter';
 import React, {useEffect, useRef, useState} from 'react';
 import {usePeerConnectionState} from './usePeerConnection';
-import {darken} from '@mui/material/styles';
-import {DarkPurple} from '../theme';
 
 const Video: React.FunctionComponent<{
   width: string;
@@ -78,8 +76,7 @@ const Video: React.FunctionComponent<{
         muted={true}
         playsInline={true}
         style={{
-          display: peerConnectionState !== 'connected' ? 'hidden' : 'block',
-          background: darken(DarkPurple, 0.5),
+          background: 'black',
         }}
       />
       <audio ref={audioRef} autoPlay={true} controls={false} muted={false} />

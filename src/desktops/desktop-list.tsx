@@ -8,6 +8,7 @@ import CardActions from '@mui/material/CardActions';
 import Box from '@mui/material/Box';
 
 import LinkButton from '../partials/LinkButton';
+import {DarkPurple} from '../theme';
 
 export function useDesktopStatus() {
   const status = useLatestMessageFromSubscriptionByTopic<Uint8Array | null>(
@@ -40,7 +41,12 @@ const DesktopList: React.FC = () => {
   return (
     <div>
       {Object.entries(desktops).map(([desktopId, status]) => (
-        <Card key={desktopId}>
+        <Card
+          key={desktopId}
+          sx={{
+            background: DarkPurple,
+          }}
+        >
           <CardHeader
             title={desktopId}
             avatar={
@@ -69,6 +75,7 @@ const DesktopList: React.FC = () => {
             <LinkButton
               disabled={status === 'offline'}
               to={`/desktops/${desktopId}`}
+              fullWidth
             >
               Connect
             </LinkButton>
