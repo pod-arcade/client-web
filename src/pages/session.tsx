@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {useParams} from 'react-router-dom';
+import {useLinkClickHandler, useParams} from 'react-router-dom';
 import {
   useNegotiatedPeerConnection,
   usePeerConnectionState,
@@ -7,6 +7,7 @@ import {
 import {useRandomId} from '../hooks/useRandomId';
 import Video from '../session/Video';
 import {Gamepad} from '../session/Gamepad';
+import {DarkPurple} from '../theme';
 
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
@@ -14,13 +15,14 @@ import IconButton from '@mui/material/IconButton';
 
 import VolumeUp from '@mui/icons-material/VolumeUp';
 import VolumeMute from '@mui/icons-material/VolumeMute';
-import {DarkPurple} from '../theme';
+import ArrowBack from '@mui/icons-material/ArrowBack';
 
 const SessionPage: React.FC = () => {
   const {desktopId} = useParams<{desktopId: string}>();
   const sessionId = useRandomId();
   const peerConnection = useNegotiatedPeerConnection(desktopId!, sessionId);
   const peerConnectionState = usePeerConnectionState(peerConnection);
+  const navigateToDesktopList = useLinkClickHandler<HTMLButtonElement>('/');
 
   const [volume, setVolume] = useState(1); // TODO: default from local storage
   const [muted, setMuted] = useState(false);
@@ -79,8 +81,13 @@ const SessionPage: React.FC = () => {
             flexGrow: 0,
           }}
         >
-          <Box sx={{flexGrow: 1}}>
-            Session #{sessionId}: {peerConnectionState}
+          <Box sx={{flexGrow: 0}}>
+            <IconButton onClick={navigateToDesktopList}>
+              <ArrowBack />
+            </IconButton>
+          </Box>
+          <Box sx={{flexGrow: 1, marginLeft: '1rem'}}>
+            <b>Session {sessionId}</b> - {peerConnectionState}
           </Box>
           <Box>
             {[0, 1, 2, 3].map(index => (
@@ -105,12 +112,11 @@ const SessionPage: React.FC = () => {
               onClick={() => {
                 setMuted(!muted);
               }}
+              color="secondary"
+              size="small"
+              disabled={peerConnectionState !== 'connected'}
             >
-              {muted ? (
-                <VolumeMute fontSize="small" color="secondary" />
-              ) : (
-                <VolumeUp fontSize="small" color="secondary" />
-              )}
+              {muted ? <VolumeMute /> : <VolumeUp />}
             </IconButton>
             <Slider
               sx={{width: '100%', margin: '0 0.5rem'}}

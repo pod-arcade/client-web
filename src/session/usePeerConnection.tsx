@@ -107,8 +107,8 @@ export const useNegotiatedPeerConnection = (
 export const usePeerConnectionState = (
   peerConnection: RTCPeerConnection | null
 ) => {
-  const [value, setValue] = useState<RTCPeerConnectionState | null>(
-    peerConnection?.connectionState ?? null
+  const [value, setValue] = useState<RTCPeerConnectionState>(
+    peerConnection?.connectionState ?? 'connecting'
   );
 
   useEffect(() => {
