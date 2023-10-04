@@ -44,6 +44,9 @@ export const Gamepad: React.FC<{
 
   useEffect(() => {
     if (!gamepad) {
+      if (previousMessage) {
+        setPreviousMessage(null);
+      }
       return;
     }
 
