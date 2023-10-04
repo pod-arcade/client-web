@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {gamepadStateToBuffer, useGamepadState} from '../hooks/useGamepad';
 import {InputType} from '../api';
 
