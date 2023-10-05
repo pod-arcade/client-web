@@ -120,7 +120,7 @@ export function useLatestMessageFromSubscriptionByTopic<T = Uint8Array>(
     }
   }, [connection, emitter, topic]);
 
-  if (!connection || !emitter) {
+  if (!connection || !emitter || !connection.connected) {
     console.warn(
       'Subscription made to ' + topic + ' without connection being created'
     );
