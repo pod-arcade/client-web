@@ -53,17 +53,6 @@ export const useNegotiatedPeerConnection = (
   useEffect(() => {
     if (!mqttConnection || !peerConnection) return;
 
-    async function sendLatestLocalDescription() {
-      if (!mqttConnection || !peerConnection?.localDescription?.sdp) {
-        console.warn('No local description to send');
-        return;
-      }
-      mqttConnection.client.publish(
-        `desktops/${desktopId}/sessions/${sessionId}/webrtc-offer`,
-        peerConnection.localDescription.sdp
-      );
-    }
-
     peerConnection.onicegatheringstatechange = async () => {
       console.log(
         'ice gathering state change',
@@ -75,25 +64,16 @@ export const useNegotiatedPeerConnection = (
       event: RTCPeerConnectionIceEvent
     ) => {
       console.log('ice candidate', event.candidate);
-      await sendLatestLocalDescription();
+      if (event.candidate && event.candidate.candidate !== '') {
+        mqttConnection.client.publish(
+          `desktops/${desktopId}/sessions/${sessionId}/offer-ice-candidate`,
+          JSON.stringify(event.candidate)
+        );
+      }
     };
 
-    peerConnection.onnegotiationneeded = async () => {
-      const offer = await peerConnection.createOffer();
-      const sdp = offer.sdp
-        ?.split('\n')
-        .filter(l => !l.startsWith('a=rtcp-fb:'))
-        .join('\n');
-      console.log('Created offer', {sdp});
-      await peerConnection.setLocalDescription({
-        type: 'offer',
-        sdp,
-      });
-      await sendLatestLocalDescription();
-    };
-
-    const topic = `desktops/${desktopId}/sessions/${sessionId}/webrtc-answer`;
-    const handler: SubscriptionCallback<Buffer> = async data => {
+    const answerTopic = `desktops/${desktopId}/sessions/${sessionId}/webrtc-answer`;
+    const answerHandler: SubscriptionCallback<Buffer> = async data => {
       console.log('Got answer', {answer: data.toString()});
       try {
         await peerConnection.setRemoteDescription(
@@ -106,12 +86,44 @@ export const useNegotiatedPeerConnection = (
         console.error('Error handling SDP answer', e);
       }
     };
-    console.log('Subscribing to', topic);
-    mqttConnection.emitter.on(topic, handler);
+    mqttConnection.emitter.on(answerTopic, answerHandler);
+
+    const iceCandidateTopic = `desktops/${desktopId}/sessions/${sessionId}/answer-ice-candidate`;
+    const iceCandidateHandler: SubscriptionCallback<Buffer> = async data => {
+      try {
+        console.log('Received ICE candidate', JSON.parse(data.toString()));
+        await peerConnection.addIceCandidate(JSON.parse(data.toString()));
+      } catch (e) {
+        console.error('Error handling ICE candidate', e);
+      }
+    };
+    mqttConnection.emitter.on(iceCandidateTopic, iceCandidateHandler);
+
+    peerConnection.onnegotiationneeded = async () => {
+      try {
+        const offer = await peerConnection.createOffer();
+        const sdp = removeRTFFromOffer(offer);
+        console.log('Created offer', {sdp});
+        await peerConnection.setLocalDescription({
+          type: 'offer',
+          sdp,
+        });
+        mqttConnection.client.publish(
+          `desktops/${desktopId}/sessions/${sessionId}/webrtc-offer`,
+          peerConnection.localDescription!.sdp
+        );
+      } catch (e) {
+        console.error('Error creating offer', e);
+      }
+    };
 
     return () => {
-      console.log('Removing listener for', topic);
-      mqttConnection.emitter.removeListener(topic, handler);
+      console.log('Removing listener for', answerTopic);
+      mqttConnection.emitter.removeListener(answerTopic, answerHandler);
+      mqttConnection.emitter.removeListener(
+        iceCandidateTopic,
+        iceCandidateHandler
+      );
       mqttConnection.client.end();
       peerConnection.close();
     };
@@ -167,3 +179,10 @@ export const useDataChannel = (peerConnection: RTCPeerConnection | null) => {
 
   return dataChannel;
 };
+
+function removeRTFFromOffer(offer: RTCSessionDescriptionInit) {
+  return offer.sdp
+    ?.split('\n')
+    .filter(l => !l.startsWith('a=rtcp-fb:'))
+    .join('\n');
+}

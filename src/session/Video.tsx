@@ -1,6 +1,5 @@
 import 'webrtc-adapter';
 import React, {useEffect, useRef, useState} from 'react';
-import {usePeerConnectionState} from './usePeerConnection';
 
 const Video: React.FunctionComponent<{
   width: string;
@@ -10,18 +9,11 @@ const Video: React.FunctionComponent<{
 }> = ({width, height, peerConnection, volume}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const peerConnectionState = usePeerConnectionState(peerConnection);
 
   const [videoStream] = useState(new MediaStream());
   const [audioStream] = useState(new MediaStream());
 
   useEffect(() => {
-    if (
-      peerConnectionState === 'closed' ||
-      peerConnection.signalingState === 'closed'
-    ) {
-      return;
-    }
     console.log('addTransceiver');
     peerConnection.addTransceiver('video', {
       direction: 'recvonly',
@@ -48,7 +40,7 @@ const Video: React.FunctionComponent<{
       console.log('Removing streams');
       peerConnection.removeEventListener('track', handler);
     };
-  }, [peerConnection, peerConnectionState]);
+  }, [peerConnection]);
 
   useEffect(() => {
     if (audioRef.current) {
