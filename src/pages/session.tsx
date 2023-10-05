@@ -9,6 +9,7 @@ import {useRandomId} from '../hooks/useRandomId';
 import Video from '../session/Video';
 import {Gamepad} from '../session/Gamepad';
 import {DarkPurple} from '../theme';
+import Metrics from '../session/Metrics';
 
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
@@ -17,6 +18,7 @@ import IconButton from '@mui/material/IconButton';
 import VolumeUp from '@mui/icons-material/VolumeUp';
 import VolumeMute from '@mui/icons-material/VolumeMute';
 import ArrowBack from '@mui/icons-material/ArrowBack';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 
 const SessionPage: React.FC = () => {
   const {desktopId} = useParams<{desktopId: string}>();
@@ -27,6 +29,7 @@ const SessionPage: React.FC = () => {
 
   const [volume, setVolume] = useState(1); // TODO: default from local storage
   const [muted, setMuted] = useState(false);
+  const [showMetrics, setShowMetrics] = useState(false);
 
   const inputChannel = useDataChannel(peerConnection);
 
@@ -72,6 +75,7 @@ const SessionPage: React.FC = () => {
             volume={muted ? 0 : volume}
           />
         </Box>
+        {showMetrics ? <Metrics peerConnection={peerConnection} /> : null}
         <Box
           sx={{
             display: 'flex',
@@ -96,6 +100,15 @@ const SessionPage: React.FC = () => {
             {[0, 1, 2, 3].map(index => (
               <Gamepad key={index} index={index} dataChannel={inputChannel} />
             ))}
+          </Box>
+          <Box>
+            <IconButton
+              size="small"
+              disabled={peerConnectionState !== 'connected'}
+              onClick={() => setShowMetrics(!showMetrics)}
+            >
+              <ShowChartIcon />
+            </IconButton>
           </Box>
           <Box
             sx={{

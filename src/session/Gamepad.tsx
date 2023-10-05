@@ -83,7 +83,7 @@ export const Gamepad: React.FC<{
         overlap="circular"
         color={showBadge ? 'primary' : 'default'}
       >
-        <IconButton onClick={e => setAnchorEl(e.currentTarget)}>
+        <IconButton size="small" onClick={e => setAnchorEl(e.currentTarget)}>
           <SportsEsportsIcon
             color={previousMessage !== null ? 'primary' : 'disabled'}
           />
