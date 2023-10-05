@@ -42,8 +42,6 @@ const DesktopList: React.FC = () => {
     return null;
   }
 
-  console.log(desktops);
-
   if (!Object.keys(desktops).length) {
     return (
       <Card
