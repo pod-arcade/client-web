@@ -71,8 +71,15 @@ export const useNegotiatedPeerConnection = (
 
     peerConnection.onnegotiationneeded = async () => {
       const offer = await peerConnection.createOffer();
-      console.log('Created offer', offer);
-      await peerConnection.setLocalDescription(offer);
+      const sdp = offer.sdp
+        ?.split('\n')
+        .filter(l => !l.startsWith('a=rtcp-fb:'))
+        .join('\n');
+      console.log('Created offer', sdp);
+      await peerConnection.setLocalDescription({
+        type: 'offer',
+        sdp,
+      });
       await sendLatestLocalDescription();
     };
 
