@@ -1,17 +1,29 @@
 import {useEffect, useState} from 'react';
-import {SubscriptionCallback} from 'mqtt-emitter';
+import MQTTEmitter, {SubscriptionCallback} from 'mqtt-emitter';
 import {useConnectionConnected, useMqttConnection} from '../hooks/useMqtt';
 
-const usePeerConnection = () => {
-  const [value] = useState<RTCPeerConnection>(
-    new RTCPeerConnection({
-      iceServers: [
-        {
-          urls: ['stun:stun.l.google.com:19302'],
-        },
-      ],
-    })
-  );
+const usePeerConnection = (mqtt: MQTTEmitter | null) => {
+  const [value, setValue] = useState<RTCPeerConnection | null>(null);
+
+  useEffect(() => {
+    if (!mqtt) return;
+    const handler = (data: Buffer) => {
+      try {
+        const iceServers = JSON.parse(data.toString());
+        console.log('Creating PeerConnection', iceServers);
+        const pc = new RTCPeerConnection({
+          iceServers: iceServers,
+        });
+        setValue(pc);
+      } catch (e) {
+        console.error('Error creating PeerConnection', e);
+      }
+    };
+    mqtt.on('server/ice-servers', handler);
+    return () => {
+      mqtt.removeListener('server/ice-servers', handler);
+    };
+  }, [mqtt]);
 
   return value;
 };
@@ -22,10 +34,10 @@ export const useNegotiatedPeerConnection = (
   desktopId: string,
   sessionId: string
 ) => {
-  const peerConnection = usePeerConnection();
   const mqttConnection = useMqttConnection(
     `desktops/${desktopId}/sessions/${sessionId}/status`
   );
+  const peerConnection = usePeerConnection(mqttConnection?.emitter ?? null);
   const mqttConnected = useConnectionConnected(mqttConnection?.client ?? null);
 
   useEffect(() => {
@@ -39,10 +51,10 @@ export const useNegotiatedPeerConnection = (
   }, [mqttConnection, mqttConnected]);
 
   useEffect(() => {
-    if (!mqttConnection) return;
+    if (!mqttConnection || !peerConnection) return;
 
     async function sendLatestLocalDescription() {
-      if (!mqttConnection || !peerConnection.localDescription?.sdp) {
+      if (!mqttConnection || !peerConnection?.localDescription?.sdp) {
         console.warn('No local description to send');
         return;
       }
@@ -57,16 +69,13 @@ export const useNegotiatedPeerConnection = (
         'ice gathering state change',
         peerConnection.iceGatheringState
       );
-      if (peerConnection.iceGatheringState === 'complete') {
-        await sendLatestLocalDescription();
-      }
     };
 
-    peerConnection.onicecandidate = async event => {
+    peerConnection.onicecandidate = async (
+      event: RTCPeerConnectionIceEvent
+    ) => {
       console.log('ice candidate', event.candidate);
-      if (!event.candidate) {
-        await sendLatestLocalDescription();
-      }
+      await sendLatestLocalDescription();
     };
 
     peerConnection.onnegotiationneeded = async () => {
@@ -75,7 +84,7 @@ export const useNegotiatedPeerConnection = (
         ?.split('\n')
         .filter(l => !l.startsWith('a=rtcp-fb:'))
         .join('\n');
-      console.log('Created offer', sdp);
+      console.log('Created offer', {sdp});
       await peerConnection.setLocalDescription({
         type: 'offer',
         sdp,
@@ -85,7 +94,7 @@ export const useNegotiatedPeerConnection = (
 
     const topic = `desktops/${desktopId}/sessions/${sessionId}/webrtc-answer`;
     const handler: SubscriptionCallback<Buffer> = async data => {
-      console.log('Got answer', data.toString());
+      console.log('Got answer', {answer: data.toString()});
       try {
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription({
