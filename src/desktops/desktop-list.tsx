@@ -23,7 +23,7 @@ export function useDesktopStatus() {
   }
 
   const ret = {} as {[desktopId: string]: 'online' | 'offline'};
-  for (const [topic, value] of Object.entries(status)) {
+  status.forEach((value, topic) => {
     const {groups: {desktopId} = {desktopId: null}} =
       topic.match(/^desktops\/(?<desktopId>.+)\/status$/) ?? {};
     if (desktopId && value) {
@@ -31,14 +31,20 @@ export function useDesktopStatus() {
       const strValue = Buffer.from(value).toString('utf-8');
       ret[desktopId] = strValue as 'online' | 'offline';
     }
-  }
+  });
   return ret;
 }
 
 const DesktopList: React.FC = () => {
   const desktops = useDesktopStatus();
 
-  if (!desktops || !Object.keys(desktops).length) {
+  if (!desktops) {
+    return null;
+  }
+
+  console.log(desktops);
+
+  if (!Object.keys(desktops).length) {
     return (
       <Card
         sx={{
@@ -79,50 +85,72 @@ const DesktopList: React.FC = () => {
     );
   }
   return (
-    <div>
-      {Object.entries(desktops).map(([desktopId, status]) => (
-        <Card
-          key={desktopId}
-          sx={{
-            background: DarkPurple,
-          }}
-        >
-          <CardHeader
-            title={desktopId}
-            avatar={
-              <Box
-                sx={{
-                  width: '0.5rem',
-                  height: '0.5rem',
-                  margin: '0.5rem 0',
-                  display: 'inline-block',
-                  borderRadius: '50%',
-                  backgroundColor:
-                    status === 'online' ? 'success.main' : 'error.main',
-                }}
-              />
-            }
-          />
-          <CardMedia
-            sx={{
-              height: '200px',
-              width: '200px',
-              filter: status === 'offline' ? 'blur(4px) saturate(0.1)' : 'none',
-            }}
-            image="/icon.png"
-          />
-          <CardActions>
-            <LinkButton
-              disabled={status === 'offline'}
-              to={`/desktops/${desktopId}`}
-              fullWidth
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        alignItems: 'stretch',
+      }}
+    >
+      {Object.entries(desktops)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([desktopId, status]) => {
+          const online = status === 'online';
+          return (
+            <Card
+              key={desktopId}
+              sx={{
+                background: DarkPurple,
+                margin: '1rem',
+                width: '200px',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
             >
-              Connect
-            </LinkButton>
-          </CardActions>
-        </Card>
-      ))}
-    </div>
+              <CardHeader
+                sx={{
+                  flexGrow: 1,
+                  display: 'flex',
+                  alignItems: 'self-start',
+                }}
+                title={desktopId}
+                avatar={
+                  <Box
+                    sx={{
+                      width: '0.5rem',
+                      height: '0.5rem',
+                      margin: '0.5rem 0',
+                      display: 'inline-block',
+                      borderRadius: '50%',
+                      backgroundColor: online ? 'success.main' : 'error.main',
+                    }}
+                  />
+                }
+              />
+              <CardMedia
+                sx={{
+                  height: '200px',
+                  width: '200px',
+                  filter: !online ? 'blur(4px) saturate(0.1)' : 'none',
+                  flexGrow: 0,
+                }}
+                image="/icon.png"
+              />
+              <CardActions sx={{flexGrow: 0}}>
+                <LinkButton
+                  disabled={!online}
+                  to={`/desktops/${desktopId}`}
+                  fullWidth
+                >
+                  Connect
+                </LinkButton>
+              </CardActions>
+            </Card>
+          );
+        })}
+    </Box>
   );
 };
 

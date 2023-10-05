@@ -98,20 +98,19 @@ export function useEmitter() {
 
 export function useLatestMessageFromSubscriptionByTopic<T = Uint8Array>(
   topic: string
-): {[topic: string]: T | null} | null {
+): Map<string, T> | null {
   const connection = useConnection();
   const emitter = useEmitter();
 
-  const [latestMessages, setLatestMessages] = useState<{
-    [topic: string]: T | null;
-  }>({});
+  const [latestMessages, setLatestMessages] = useState(new Map<string, T>());
 
   useEffect(() => {
     if (connection && emitter) {
       const handler: SubscriptionCallback<T> = (data, _, topic) => {
-        setLatestMessages({
-          ...latestMessages,
-          [topic]: data,
+        setLatestMessages(latestMessages => {
+          const newMessages = new Map(latestMessages);
+          newMessages.set(topic, data);
+          return newMessages;
         });
       };
       emitter.on(topic, handler);
