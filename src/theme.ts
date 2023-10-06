@@ -14,6 +14,7 @@ const theme = createTheme({
     mode: 'dark',
     background: {
       default: darken(DarkPurple, 0.7),
+      paper: darken(DarkPurple, 0.7),
     },
     primary: {
       main: CambridgeBlue,
@@ -21,6 +22,7 @@ const theme = createTheme({
     secondary: {
       main: Coral,
     },
+    divider: WalnutBrown,
   },
 });
 
