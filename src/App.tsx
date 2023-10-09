@@ -1,51 +1,45 @@
 import React from 'react';
-import {
-  MQTTConnectionProvider,
-  useConnection,
-  useConnectionConnected,
-} from './hooks/useMqtt';
-import {Outlet} from 'react-router-dom';
+import {Outlet, useNavigate} from 'react-router-dom';
 
 import {ThemeProvider} from '@emotion/react';
 import CssBaseline from '@mui/material/CssBaseline';
 
-import CircularProgress from '@mui/material/CircularProgress';
-import Backdrop from '@mui/material/Backdrop';
-
 import theme from './theme';
+import {useConfig} from './hooks/useConfig';
+import {AuthProvider} from 'oidc-react';
 
 const ContextProviders: React.FC<React.PropsWithChildren> = ({children}) => {
   return (
-    <MQTTConnectionProvider>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </ThemeProvider>
-    </MQTTConnectionProvider>
-  );
-};
-
-const ConnectionHandler: React.FC<React.PropsWithChildren> = ({children}) => {
-  const connection = useConnection();
-  const connected = useConnectionConnected(connection);
-  return (
-    <>
-      <Backdrop open={!connected}>
-        <CircularProgress variant="indeterminate" />
-      </Backdrop>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       {children}
-    </>
+    </ThemeProvider>
   );
 };
 
 const App: React.FC = () => {
-  return (
+  const navigate = useNavigate();
+  const config = useConfig();
+  const comps = (
     <ContextProviders>
-      <ConnectionHandler>
-        <Outlet />
-      </ConnectionHandler>
+      <Outlet />
     </ContextProviders>
   );
+
+  if (config && config.auth_method === 'oidc') {
+    return (
+      <AuthProvider
+        authority={config.oidc_server}
+        clientId={config.oidc_client_id}
+        redirectUri={window.location.origin + '/oidc-callback'}
+        onSignIn={() => navigate('/')}
+      >
+        {comps}
+      </AuthProvider>
+    );
+  } else {
+    return comps;
+  }
 };
 
 export default App;

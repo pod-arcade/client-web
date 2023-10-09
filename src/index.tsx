@@ -20,6 +20,10 @@ const router = createBrowserRouter([
       },
     ],
   },
+  {
+    path: '/oidc-callback',
+    element: <App />,
+  },
 ]);
 
 const root = ReactDOM.createRoot(

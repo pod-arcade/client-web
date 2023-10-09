@@ -1,26 +1,34 @@
-import React, {useEffect, useState, useContext} from 'react';
+import {useEffect, useState} from 'react';
 import * as mqtt from 'mqtt';
 import MQTTEmitter, {SubscriptionCallback} from 'mqtt-emitter';
 import {useRandomId} from './useRandomId';
+import {useAuth} from './useAuth';
 
 type ContextValue = {client: mqtt.MqttClient; emitter: MQTTEmitter} | null;
-const ConnectionContext = React.createContext<ContextValue>(null);
-ConnectionContext.displayName = 'MQTT';
 
 const MQTT_URL = `wss://${window.location.host}/mqtt`;
 
 export const useMqttConnection = (offlineTopic: string | null = null) => {
   const [value, setValue] = useState<ContextValue>(null);
   const connectionId = useRandomId();
+  const auth = useAuth();
+
   useEffect(() => {
+    if (!auth) {
+      return;
+    }
+
     let url = MQTT_URL;
     if (window.location.protocol.indexOf('https:') !== 0) {
       url = url.replace('wss:', 'ws:');
     }
-    console.log(`mqtt ${connectionId} connecting to`, url);
+    console.log(
+      `mqtt ${connectionId} connecting to ${url} with credentials`,
+      auth
+    );
     const client = mqtt.connect(url, {
-      username: 'web', // TODO
-      password: 'todo', // TODO,
+      username: auth.username,
+      password: auth.password,
       clientId: `user:${connectionId}`,
       clean: false,
       will: offlineTopic
@@ -50,26 +58,10 @@ export const useMqttConnection = (offlineTopic: string | null = null) => {
       console.log('mqtt disconnecting');
       client.end();
     };
-  }, []);
+  }, [auth]);
 
   return value;
 };
-
-export const MQTTConnectionProvider: React.FunctionComponent<
-  React.PropsWithChildren
-> = props => {
-  const value = useMqttConnection();
-
-  return (
-    <ConnectionContext.Provider value={value}>
-      {props.children}
-    </ConnectionContext.Provider>
-  );
-};
-
-export function useConnection() {
-  return useContext(ConnectionContext)?.client ?? null;
-}
 
 export function useConnectionConnected(connection: mqtt.MqttClient | null) {
   const [connected, setConnected] = useState<boolean>(false);
@@ -92,20 +84,14 @@ export function useConnectionConnected(connection: mqtt.MqttClient | null) {
   return connected;
 }
 
-export function useEmitter() {
-  return useContext(ConnectionContext)?.emitter;
-}
-
 export function useLatestMessageFromSubscriptionByTopic<T = Uint8Array>(
+  emitter: MQTTEmitter | null,
   topic: string
 ): Map<string, T> | null {
-  const connection = useConnection();
-  const emitter = useEmitter();
-
   const [latestMessages, setLatestMessages] = useState(new Map<string, T>());
 
   useEffect(() => {
-    if (connection && emitter) {
+    if (emitter) {
       const handler: SubscriptionCallback<T> = (data, _, topic) => {
         setLatestMessages(latestMessages => {
           const newMessages = new Map(latestMessages);
@@ -118,9 +104,9 @@ export function useLatestMessageFromSubscriptionByTopic<T = Uint8Array>(
         emitter.removeListener(topic, handler);
       };
     }
-  }, [connection, emitter, topic]);
+  }, [emitter, topic]);
 
-  if (!connection || !emitter) {
+  if (!emitter) {
     console.warn(
       'Subscription made to ' + topic + ' without connection being created'
     );

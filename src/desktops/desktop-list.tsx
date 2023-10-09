@@ -1,5 +1,9 @@
 import React from 'react';
-import {useLatestMessageFromSubscriptionByTopic} from '../hooks/useMqtt';
+import {
+  useConnectionConnected,
+  useLatestMessageFromSubscriptionByTopic,
+  useMqttConnection,
+} from '../hooks/useMqtt';
 
 import Card from '@mui/material/Card';
 import CardMedia from '@mui/material/CardMedia';
@@ -8,13 +12,16 @@ import CardActions from '@mui/material/CardActions';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import LinkButton from '../partials/LinkButton';
 import {DarkPurple} from '../theme';
 import {CardContent} from '@mui/material';
+import MQTTEmitter from 'mqtt-emitter';
 
-export function useDesktopStatus() {
+export function useDesktopStatus(emitter: MQTTEmitter | null = null) {
   const status = useLatestMessageFromSubscriptionByTopic<Uint8Array | null>(
+    emitter ?? null,
     'desktops/+/status'
   );
 
@@ -36,11 +43,19 @@ export function useDesktopStatus() {
 }
 
 const DesktopList: React.FC = () => {
-  const desktops = useDesktopStatus();
+  const connection = useMqttConnection();
+  const desktops = useDesktopStatus(connection?.emitter ?? null);
+  const connected = useConnectionConnected(connection?.client ?? null);
+
+  if (!connected) {
+    return <CircularProgress variant="indeterminate" />;
+  }
 
   if (!desktops) {
     return null;
   }
+
+  console.log({desktops});
 
   if (!Object.keys(desktops).length) {
     return (
