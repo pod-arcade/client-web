@@ -8,7 +8,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
 const METRICS_INTERVAL_MS = 250;
-const METRICS_SAMPLES = 250;
+const METRICS_SAMPLES = 480;
 const SAMPLES_PER_PIXEL = 2;
 const AVERAGE_WINDOW = 10;
 
@@ -27,11 +27,12 @@ const simpleMovingAverage = (data: number[]) => {
   return results;
 };
 
-const Stat: React.FC<{points: number[]; title: string; unit: string}> = ({
-  points,
-  title,
-  unit,
-}) => {
+const Stat: React.FC<{
+  points: number[];
+  title: string;
+  unit: string;
+  importance?: number;
+}> = ({points, title, unit, importance = 1}) => {
   const sparklineContainerRef = useRef<HTMLDivElement>(null);
   const sparklineContainerSize = useComponentSize(sparklineContainerRef);
   const averagedPoints = simpleMovingAverage(
@@ -47,11 +48,15 @@ const Stat: React.FC<{points: number[]; title: string; unit: string}> = ({
         background: lighten(DarkPurple, 0.1),
         borderRadius: '0.5rem',
         flexGrow: 1,
+        flexShrink: importance,
+        height: '32pt',
+        minWidth: '128pt',
       }}
     >
       <Box
         sx={{
           flexGrow: 1,
+          flexDirection: 'row',
           overflow: 'hidden',
           maxWidth: METRICS_SAMPLES * SAMPLES_PER_PIXEL,
         }}
@@ -94,6 +99,11 @@ const Metrics: React.FC<{peerConnection: RTCPeerConnection}> = ({
       videoJitterMs?: number;
       videoMegabitsPerSecond?: number;
       audioMegabitsPerSecond?: number;
+      videoPacketsLostPerSecond?: number;
+      audioPacketsLostPerSecond?: number;
+
+      videoPacketsLostTotal?: number;
+      audioPacketsLostTotal?: number;
     }[]
   >([]);
 
@@ -102,6 +112,8 @@ const Metrics: React.FC<{peerConnection: RTCPeerConnection}> = ({
     const lastStats: {
       videoTotalBytes?: number;
       audioTotalBytes?: number;
+      videoPacketsLostTotal?: number;
+      audioPacketsLostTotal?: number;
     } = {};
     peerConnection.getStats().then(s => console.log(Array.from(s.values())));
     const interval = setInterval(async () => {
@@ -123,14 +135,28 @@ const Metrics: React.FC<{peerConnection: RTCPeerConnection}> = ({
               (1024 * 1024) /
               (METRICS_INTERVAL_MS / 1000);
 
+            aggregateStats.videoPacketsLostPerSecond =
+              (stat.packetsLost - (lastStats.videoPacketsLostTotal ?? 0)) /
+              (METRICS_INTERVAL_MS / 1000);
+
+            aggregateStats.videoPacketsLostTotal = stat.packetsLost;
+
             lastStats.videoTotalBytes = stat.bytesReceived;
+            lastStats.videoPacketsLostTotal = stat.packetsLost;
           } else if (stat.mediaType === 'audio') {
             aggregateStats.audioMegabitsPerSecond =
               (8 * (stat.bytesReceived - (lastStats.audioTotalBytes ?? 0))) /
               (1024 * 1024) /
               (METRICS_INTERVAL_MS / 1000);
 
+            aggregateStats.audioPacketsLostPerSecond =
+              (stat.packetsLost - (lastStats.audioPacketsLostTotal ?? 0)) /
+              (METRICS_INTERVAL_MS / 1000);
+
+            aggregateStats.audioPacketsLostTotal = stat.packetsLost;
+
             lastStats.audioTotalBytes = stat.bytesReceived;
+            lastStats.audioPacketsLostTotal = stat.packetsLost;
           }
         }
       }
@@ -144,35 +170,50 @@ const Metrics: React.FC<{peerConnection: RTCPeerConnection}> = ({
   }, [peerConnection]);
 
   return (
-    <Box
-      sx={{
-        width: '100%',
-        height: '64px',
-        display: 'flex',
-        flexDirection: 'row',
-      }}
-    >
-      <Stat
-        points={stats.map(s => s.roundTripTimeMs ?? 0)}
-        title="Round Trip Time"
-        unit="ms"
-      />
-      <Stat
-        points={stats.map(s => s.videoJitterMs ?? 0)}
-        title="Video Jitter"
-        unit="ms"
-      />
-      <Stat
-        points={stats.map(s => s.videoMegabitsPerSecond ?? 0)}
-        title="Video Bitrate"
-        unit="Mbps"
-      />
-      <Stat
-        points={stats.map(s => s.audioMegabitsPerSecond ?? 0)}
-        title="Audio Bitrate"
-        unit="Mbps"
-      />
-    </Box>
+    <>
+      <Box
+        sx={{
+          width: '100%',
+          // height: '128pt',
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+        }}
+      >
+        <Stat
+          points={stats.map(s => s.roundTripTimeMs ?? 0)}
+          title="Round Trip Time"
+          unit="ms"
+        />
+        <Stat
+          points={stats.map(s => s.videoJitterMs ?? 0)}
+          title="Video Jitter"
+          unit="ms"
+        />
+        <Stat
+          points={stats.map(s => s.videoMegabitsPerSecond ?? 0)}
+          title="Video Bitrate"
+          unit="Mbps"
+        />
+        <Stat
+          points={stats.map(s => s.audioMegabitsPerSecond ?? 0)}
+          title="Audio Bitrate"
+          unit="Mbps"
+        />
+        <Stat
+          points={stats.map(s => s.videoPacketsLostPerSecond ?? 0)}
+          title="Video Lost Packets"
+          unit="pkt/s"
+          importance={2}
+        />
+        <Stat
+          points={stats.map(s => s.videoPacketsLostPerSecond ?? 0)}
+          title="Audio Lost Packets"
+          unit="pkt/s"
+          importance={2}
+        />
+      </Box>
+    </>
   );
 };
 export default Metrics;
