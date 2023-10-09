@@ -58,7 +58,7 @@ export const useMqttConnection = (offlineTopic: string | null = null) => {
       console.log('mqtt disconnecting');
       client.end();
     };
-  }, [auth]);
+  }, [auth?.username, auth?.password]);
 
   return value;
 };
