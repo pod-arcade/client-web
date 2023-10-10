@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import * as mqtt from 'mqtt';
 import MQTTEmitter, {SubscriptionCallback} from 'mqtt-emitter';
 import {useRandomId} from './useRandomId';
-import {useAuth} from './useAuth';
+import {useAuth, usePsk} from './useAuth';
 
 type ContextValue = {client: mqtt.MqttClient; emitter: MQTTEmitter} | null;
 
@@ -12,9 +12,10 @@ export const useMqttConnection = (offlineTopic: string | null = null) => {
   const [value, setValue] = useState<ContextValue>(null);
   const connectionId = useRandomId();
   const auth = useAuth();
+  const psk = usePsk();
 
   useEffect(() => {
-    if (!auth) {
+    if (!auth || psk.loading) {
       return;
     }
 
@@ -53,6 +54,16 @@ export const useMqttConnection = (offlineTopic: string | null = null) => {
     setValue({
       client,
       emitter,
+    });
+    client.on('error', e => {
+      console.error(`mqtt ${connectionId} error`, e);
+      if (
+        auth.method === 'psk' &&
+        e instanceof mqtt.ErrorWithReasonCode &&
+        e.code === 5
+      ) {
+        psk.setError(new Error('Invalid password'));
+      }
     });
     return () => {
       console.log('mqtt disconnecting');
