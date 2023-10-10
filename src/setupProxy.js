@@ -1,4 +1,4 @@
-// This proxy config is used by create-react-app to proxy non-static requests to a backend pos-arcade server
+// This proxy config is used by create-react-app to proxy non-static requests to a backend pod-arcade server
 
 const {createProxyMiddleware} = require('http-proxy-middleware');
 
