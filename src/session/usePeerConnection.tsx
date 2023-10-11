@@ -183,6 +183,10 @@ export const useDataChannel = (peerConnection: RTCPeerConnection | null) => {
 function removeRTFFromOffer(offer: RTCSessionDescriptionInit) {
   return offer.sdp
     ?.split('\n')
-    .filter(l => !l.startsWith('a=rtcp-fb:'))
+    .filter(
+      l =>
+        !l.startsWith('a=rtcp-fb:') || // if it's not a rtcp feedback line
+        l.match(/^a=rtcp-fb:[0-9]+ nack$/gm) !== null // or if it's specifically for NACK
+    )
     .join('\n');
 }
