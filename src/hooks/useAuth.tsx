@@ -53,7 +53,7 @@ export const useAuth = () => {
     return {
       method: 'none',
       username: 'user:anonymous',
-      password: '',
+      password: 'anonymous',
     } as IAuth;
   } else if (config?.auth_method === 'psk') {
     return {
