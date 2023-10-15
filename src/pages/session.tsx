@@ -19,6 +19,8 @@ import VolumeUp from '@mui/icons-material/VolumeUp';
 import VolumeMute from '@mui/icons-material/VolumeMute';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
+import {Mouse} from '../session/Mouse';
+import {Keyboard} from '../session/Keyboard';
 
 const SessionPage: React.FC = () => {
   const {desktopId} = useParams<{desktopId: string}>();
@@ -26,6 +28,8 @@ const SessionPage: React.FC = () => {
   const peerConnection = useNegotiatedPeerConnection(desktopId!, sessionId);
   const peerConnectionState = usePeerConnectionState(peerConnection);
   const navigateToDesktopList = useLinkClickHandler<HTMLButtonElement>('/');
+
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement>();
 
   const [volume, setVolume] = useState(1); // TODO: default from local storage
   const [muted, setMuted] = useState(false);
@@ -73,6 +77,7 @@ const SessionPage: React.FC = () => {
             height="100%"
             peerConnection={peerConnection}
             volume={muted ? 0 : volume}
+            onVideoElement={setVideoElement}
           />
         </Box>
         {showMetrics ? <Metrics peerConnection={peerConnection} /> : null}
@@ -97,6 +102,8 @@ const SessionPage: React.FC = () => {
             <b>Session {sessionId}</b> - {peerConnectionState}
           </Box>
           <Box>
+            <Mouse dataChannel={inputChannel} videoElement={videoElement} />
+            <Keyboard dataChannel={inputChannel} />
             {[0, 1, 2, 3].map(index => (
               <Gamepad key={index} index={index} dataChannel={inputChannel} />
             ))}

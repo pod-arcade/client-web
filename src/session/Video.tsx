@@ -6,12 +6,19 @@ const Video: React.FunctionComponent<{
   height?: string;
   peerConnection: RTCPeerConnection;
   volume: number;
-}> = ({width, height, peerConnection, volume}) => {
+  onVideoElement: (videoElement: HTMLVideoElement) => void;
+}> = ({width, height, peerConnection, volume, onVideoElement}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const [videoStream] = useState(new MediaStream());
   const [audioStream] = useState(new MediaStream());
+
+  useEffect(() => {
+    if (videoRef.current) {
+      onVideoElement(videoRef.current);
+    }
+  }, [videoRef]);
 
   useEffect(() => {
     console.log('addTransceiver');
