@@ -39,37 +39,38 @@ const PskDialog: React.FC = () => {
   }
 
   return (
-    <Box sx={{display: 'flex', height: '100vh', width: '100vw'}}>
-      <Paper
-        sx={{
-          maxWidth: 400,
-          width: '100%',
-          margin: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '2rem',
-        }}
-      >
-        <Typography variant="h5">Enter Password</Typography>
-        <Typography variant="subtitle2">
-          Enter the pre-shared password to use pod-arcade.
-        </Typography>
-        <TextField
-          sx={{margin: '1rem 0'}}
-          type="password"
-          variant="standard"
-          value={localPsk}
-          placeholder="Password"
-          onChange={e => setLocalPsk(e.target.value)}
-          onSubmit={updatePsk}
-          error={!!psk.error}
-          helperText={psk.error?.message}
-        />
-        <Button variant="contained" onClick={updatePsk}>
-          Enter
-        </Button>
-      </Paper>
-    </Box>
+    <form onSubmit={updatePsk}>
+      <Box sx={{display: 'flex', height: '100vh', width: '100vw'}}>
+        <Paper
+          sx={{
+            maxWidth: 400,
+            width: '100%',
+            margin: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '2rem',
+          }}
+        >
+          <Typography variant="h5">Enter Password</Typography>
+          <Typography variant="subtitle2">
+            Enter the pre-shared password to use pod-arcade.
+          </Typography>
+          <TextField
+            sx={{margin: '1rem 0'}}
+            type="password"
+            variant="standard"
+            value={localPsk}
+            placeholder="Password"
+            onChange={e => setLocalPsk(e.target.value)}
+            error={!!psk.error}
+            helperText={psk.error?.message}
+          />
+          <Button type="submit" variant="contained">
+            Enter
+          </Button>
+        </Paper>
+      </Box>
+    </form>
   );
 };
 
