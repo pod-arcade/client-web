@@ -20,7 +20,7 @@ import VolumeMute from '@mui/icons-material/VolumeMute';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import {Mouse} from '../session/Mouse';
-import {Keyboard} from '../session/Keyboard';
+// import {Keyboard} from '../session/Keyboard';
 
 const SessionPage: React.FC = () => {
   const {desktopId} = useParams<{desktopId: string}>();
@@ -103,7 +103,7 @@ const SessionPage: React.FC = () => {
           </Box>
           <Box>
             <Mouse dataChannel={inputChannel} videoElement={videoElement} />
-            <Keyboard dataChannel={inputChannel} />
+            {/* <Keyboard dataChannel={inputChannel} /> */}
             {[0, 1, 2, 3].map(index => (
               <Gamepad key={index} index={index} dataChannel={inputChannel} />
             ))}
