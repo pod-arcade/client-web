@@ -1,4 +1,4 @@
-import {useContext, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {useConfig, IConfig} from './useConfig';
 import {AuthContext} from 'oidc-react';
 import {singletonHook} from 'react-singleton-hook';
@@ -45,33 +45,32 @@ export const useAuth = () => {
   const oidcAuth = useContext(AuthContext);
   const psk = usePsk();
 
-  if (!config || psk.loading) {
-    return null;
-  }
+  const [auth, setAuth] = useState<IAuth | null>(null);
+  useEffect(() => {
+    if (!config || psk.loading) {
+      return;
+    }
 
-  if (config?.auth_method === 'none') {
-    return {
-      method: 'none',
-      username: 'user:anonymous',
-      password: 'anonymous',
-    } as IAuth;
-  } else if (config?.auth_method === 'psk') {
-    return {
-      method: 'psk',
-      username: 'user:psk',
-      password: psk.psk,
-    } as IAuth;
-  } else if (config.auth_method === 'oidc') {
-    if (oidcAuth!.userData) {
-      return {
+    if (config?.auth_method === 'none') {
+      setAuth({
+        method: 'none',
+        username: 'user:anonymous',
+        password: 'anonymous',
+      });
+    } else if (config?.auth_method === 'psk') {
+      setAuth({
+        method: 'psk',
+        username: 'user:psk',
+        password: psk.psk,
+      } as IAuth);
+    } else if (config.auth_method === 'oidc' && oidcAuth!.userData) {
+      setAuth({
         method: 'oidc',
         username: `user:${oidcAuth!.userData.profile.sub}`,
         password: oidcAuth!.userData.id_token,
-      } as IAuth;
-    } else {
-      return null;
+      } as IAuth);
     }
-  } else {
-    return null;
-  }
+  }, [config, oidcAuth, psk.loading]);
+
+  return auth;
 };

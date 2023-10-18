@@ -15,7 +15,7 @@ export const useMqttConnection = (offlineTopic: string | null = null) => {
   const psk = usePsk();
 
   useEffect(() => {
-    if (!auth || psk.loading) {
+    if (!auth) {
       return;
     }
 
@@ -62,14 +62,14 @@ export const useMqttConnection = (offlineTopic: string | null = null) => {
         e instanceof mqtt.ErrorWithReasonCode &&
         e.code === 5
       ) {
-        psk.setError(new Error('Invalid password'));
+        !psk.loading && psk.setError(new Error('Invalid password'));
       }
     });
     return () => {
       console.log('mqtt disconnecting');
       client.end();
     };
-  }, [auth?.username, auth?.password]);
+  }, [auth]);
 
   return value;
 };
