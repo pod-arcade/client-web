@@ -15,6 +15,8 @@ const usePeerConnection = (mqtt: MQTTEmitter | null) => {
           iceServers: iceServers,
         });
         setValue(pc);
+        // Don't try to create a PC every time the message is received
+        mqtt.removeListener('server/ice-servers', handler);
       } catch (e) {
         console.error('Error creating PeerConnection', e);
       }
