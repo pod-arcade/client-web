@@ -32,6 +32,7 @@ export const useMqttConnection = (offlineTopic: string | null = null) => {
       password: auth.password,
       clientId: `user:${connectionId}`,
       clean: false,
+      protocolVersion: 5,
       will: offlineTopic
         ? {
             topic: offlineTopic,
