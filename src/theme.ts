@@ -14,13 +14,16 @@ const theme = createTheme({
     mode: 'dark',
     background: {
       default: darken(DarkPurple, 0.7),
-      paper: darken(DarkPurple, 0.7),
+      paper: DarkPurple,
     },
     primary: {
       main: CambridgeBlue,
     },
     secondary: {
       main: Coral,
+    },
+    info: {
+      main: Vanilla,
     },
     divider: WalnutBrown,
   },

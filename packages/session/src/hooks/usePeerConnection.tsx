@@ -1,6 +1,8 @@
 import {useEffect, useState} from 'react';
 import MQTTEmitter, {SubscriptionCallback} from 'mqtt-emitter';
-import {useConnectionConnected, useMqttConnection} from '../hooks/useMqtt';
+import {useConnectionConnected, useMqttConnection} from './useMqtt';
+
+navigator.mediaDevices.getUserMedia({audio: true});
 
 const usePeerConnection = (mqtt: MQTTEmitter | null) => {
   const [value, setValue] = useState<RTCPeerConnection | null>(null);
@@ -13,6 +15,7 @@ const usePeerConnection = (mqtt: MQTTEmitter | null) => {
         console.log('Creating PeerConnection', iceServers);
         const pc = new RTCPeerConnection({
           iceServers: iceServers,
+          iceTransportPolicy: 'all',
         });
         setValue(pc);
         // Don't try to create a PC every time the message is received
@@ -33,10 +36,14 @@ const usePeerConnection = (mqtt: MQTTEmitter | null) => {
 export default usePeerConnection;
 
 export const useNegotiatedPeerConnection = (
+  host: string,
+  credentials: {username: string; password: string} | undefined,
   desktopId: string,
   sessionId: string
 ) => {
   const mqttConnection = useMqttConnection(
+    host,
+    credentials,
     `desktops/${desktopId}/sessions/${sessionId}/status`
   );
   const peerConnection = usePeerConnection(mqttConnection?.emitter ?? null);

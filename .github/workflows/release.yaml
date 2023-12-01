@@ -13,6 +13,7 @@ jobs:
         with:
           node-version: 18
       - run: npm ci
+      - run: npm run build -ws
       - run: npm run build
       - run: tar -czf client-web.tar.gz build
       - uses: actions/upload-artifact@v2

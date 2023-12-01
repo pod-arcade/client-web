@@ -1,0 +1,38 @@
+{
+  "name": "@pod-arcade/session",
+  "version": "0.0.1",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@jrwats/react-sparklines": "^1.7.8",
+    "@mui/icons-material": "^5.14.11",
+    "@mui/material": "^5.14.11",
+    "@rehooks/component-size": "^1.0.3",
+    "mqtt": "^5.0.3",
+    "mqtt-emitter": "^4.1.0",
+    "webrtc-adapter": "^8.2.3"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.46",
+    "@types/react": "^18.2.21",
+    "@types/react-dom": "^18.2.7",
+    "react": "^18.2.0",
+    "typescript": "^4.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

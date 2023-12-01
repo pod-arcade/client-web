@@ -1,8 +1,7 @@
 import React, {useEffect, useState, useRef} from 'react';
 import {Sparklines, SparklinesLine} from '@jrwats/react-sparklines';
-import {lighten} from '@mui/material/styles';
+import {lighten, useTheme} from '@mui/material/styles';
 import useComponentSize from '@rehooks/component-size';
-import {DarkPurple, Vanilla} from '../theme';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -32,6 +31,7 @@ const Stat: React.FC<{points: number[]; title: string; unit: string}> = ({
   title,
   unit,
 }) => {
+  const theme = useTheme();
   const sparklineContainerRef = useRef<HTMLDivElement>(null);
   const sparklineContainerSize = useComponentSize(sparklineContainerRef);
   const averagedPoints = simpleMovingAverage(
@@ -44,7 +44,7 @@ const Stat: React.FC<{points: number[]; title: string; unit: string}> = ({
         padding: '0.5rem',
         display: 'flex',
         flexDirection: 'row',
-        background: lighten(DarkPurple, 0.1),
+        background: lighten(theme.palette.background.paper, 0.1),
         borderRadius: '0.5rem',
         flexGrow: 1,
       }}
@@ -62,7 +62,7 @@ const Stat: React.FC<{points: number[]; title: string; unit: string}> = ({
           width={sparklineContainerSize.width}
           height={sparklineContainerSize.height}
         >
-          <SparklinesLine color={Vanilla} />
+          <SparklinesLine color={theme.palette.info.light} />
         </Sparklines>
       </Box>
       <Box

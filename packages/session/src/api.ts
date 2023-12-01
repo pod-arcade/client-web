@@ -1,4 +1,4 @@
-import keycodes from './keymap.json';
+import keycodes from './keymap';
 
 export enum InputType {
   KEYBOARD = 0x01,
