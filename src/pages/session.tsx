@@ -4,6 +4,7 @@ import {useParams} from 'react-router-dom';
 import {useRandomId} from '../hooks/useRandomId';
 
 import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
 import {useAuth} from '../hooks/useAuth';
 
 const SessionPage: React.FC = () => {
@@ -32,12 +33,12 @@ const SessionPage: React.FC = () => {
         width: '100vw',
       }}
     >
-      <Box
+      <Card
         sx={{
-          borderRadius: '0.5rem',
           height: '100%',
-          overflow: 'hidden',
+          width: '100%',
         }}
+        elevation={0}
       >
         <Session
           mqttUrl={mqttUrl}
@@ -54,7 +55,7 @@ const SessionPage: React.FC = () => {
           sessionId={sessionId}
           userInfo={{name: auth?.username || 'unknown'}}
         />
-      </Box>
+      </Card>
     </Box>
   );
 };

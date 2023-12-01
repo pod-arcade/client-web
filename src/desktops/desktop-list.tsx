@@ -71,7 +71,13 @@ const DesktopList: React.FC = () => {
               flexDirection: 'row',
             }}
           >
-            <img width="120px" src="/favicon.png" />
+            <Box
+              sx={{
+                padding: '1rem',
+              }}
+            >
+              <img width="120px" src="/logo-stack.png" />
+            </Box>
             <Box
               sx={{
                 display: 'flex',
@@ -80,7 +86,7 @@ const DesktopList: React.FC = () => {
               }}
             >
               <Typography variant="h4" align="center">
-                Welcome to Pod-Arcade!
+                Welcome to Pod Arcade!
               </Typography>
               <Typography variant="subtitle1" align="center">
                 To setup you first desktop, follow the instructions in the{' '}
@@ -153,6 +159,7 @@ const DesktopList: React.FC = () => {
                 <LinkButton
                   disabled={!online}
                   to={`/desktops/${desktopId}`}
+                  color="secondary"
                   fullWidth
                 >
                   Connect

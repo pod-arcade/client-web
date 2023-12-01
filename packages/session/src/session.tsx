@@ -12,9 +12,9 @@ import {
   usePeerConnectionState,
 } from './hooks/usePeerConnection';
 
-import Box from '@mui/material/Box';
-import {useTheme} from '@mui/material';
+import {useTheme} from '@mui/material/styles';
 
+import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
 import IconButton from '@mui/material/IconButton';
 
@@ -82,7 +82,6 @@ const Session: React.FC<{
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: theme.palette.background.paper,
         height: '100%',
       }}
     >

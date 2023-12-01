@@ -1,14 +1,17 @@
 import {darken, createTheme} from '@mui/material/styles';
 
-export const CambridgeBlue = '#80B7AF';
-export const Coral = '#EE8B63';
-export const Vanilla = '#F8E9B1';
-export const DarkPurple = '#2E1D3C';
-export const WalnutBrown = '#5C574F';
+export const DarkOrange = '#FE8D06';
+export const Tomato = '#EA5C45';
+export const Parchment = '#F5EAD3';
+export const DarkPurple = '#311A34';
+export const Razzmatazz = '#DB3A74';
 
 const theme = createTheme({
   typography: {
     fontFamily: 'sans-serif',
+  },
+  shape: {
+    borderRadius: 8,
   },
   palette: {
     mode: 'dark',
@@ -17,15 +20,15 @@ const theme = createTheme({
       paper: DarkPurple,
     },
     primary: {
-      main: CambridgeBlue,
+      main: DarkOrange,
     },
     secondary: {
-      main: Coral,
+      main: Tomato,
     },
     info: {
-      main: Vanilla,
+      main: Parchment,
     },
-    divider: WalnutBrown,
+    divider: Razzmatazz,
   },
 });
 
