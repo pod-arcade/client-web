@@ -12,8 +12,6 @@ import {
   usePeerConnectionState,
 } from './hooks/usePeerConnection';
 
-import {useTheme} from '@mui/material/styles';
-
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
 import IconButton from '@mui/material/IconButton';
@@ -54,8 +52,6 @@ const Session: React.FC<{
   /** Information about the user connecting to the session. Will be published once the session is established */
   userInfo: object;
 }> = ({mqttUrl, mqttCredentials, desktop, sessionId, features}) => {
-  const theme = useTheme();
-
   const peerConnection = useNegotiatedPeerConnection(
     mqttUrl,
     mqttCredentials,

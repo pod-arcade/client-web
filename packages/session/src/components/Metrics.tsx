@@ -91,9 +91,9 @@ const Metrics: React.FC<{peerConnection: RTCPeerConnection}> = ({
   const [stats, setStats] = useState<
     {
       roundTripTimeMs?: number;
-      videoJitterMs?: number;
+      videoProcessingDelayMs?: number;
       videoMegabitsPerSecond?: number;
-      audioMegabitsPerSecond?: number;
+      framesDroppedPerFrame?: number;
     }[]
   >([]);
 
@@ -102,8 +102,10 @@ const Metrics: React.FC<{peerConnection: RTCPeerConnection}> = ({
     const lastStats: {
       videoTotalBytes?: number;
       audioTotalBytes?: number;
+      framesDecodedTotal?: number;
+      totalProcessingDelay?: number;
+      framesDroppedTotal?: number;
     } = {};
-    peerConnection.getStats().then(s => console.log(Array.from(s.values())));
     const interval = setInterval(async () => {
       if (peerConnection.connectionState !== 'connected') {
         return;
@@ -116,7 +118,13 @@ const Metrics: React.FC<{peerConnection: RTCPeerConnection}> = ({
           aggregateStats.roundTripTimeMs = stat.currentRoundTripTime * 1000;
         } else if (stat.type === 'inbound-rtp') {
           if (stat.mediaType === 'video') {
-            aggregateStats.videoJitterMs = stat.jitter * 1000;
+            aggregateStats.videoProcessingDelayMs =
+              ((stat.totalProcessingDelay -
+                (lastStats.totalProcessingDelay ?? 0)) /
+                (stat.framesDecoded - (lastStats.framesDecodedTotal ?? 0))) *
+              1000;
+            lastStats.totalProcessingDelay = stat.totalProcessingDelay;
+            lastStats.framesDecodedTotal = stat.framesDecoded;
 
             aggregateStats.videoMegabitsPerSecond =
               (8 * (stat.bytesReceived - (lastStats.videoTotalBytes ?? 0))) /
@@ -124,13 +132,11 @@ const Metrics: React.FC<{peerConnection: RTCPeerConnection}> = ({
               (METRICS_INTERVAL_MS / 1000);
 
             lastStats.videoTotalBytes = stat.bytesReceived;
-          } else if (stat.mediaType === 'audio') {
-            aggregateStats.audioMegabitsPerSecond =
-              (8 * (stat.bytesReceived - (lastStats.audioTotalBytes ?? 0))) /
-              (1024 * 1024) /
-              (METRICS_INTERVAL_MS / 1000);
 
-            lastStats.audioTotalBytes = stat.bytesReceived;
+            aggregateStats.framesDroppedPerFrame =
+              (stat.framesDropped - (lastStats.framesDroppedTotal ?? 0)) /
+              (stat.framesDecoded - (lastStats.framesDecodedTotal ?? 0));
+            lastStats.framesDroppedTotal = stat.framesDropped;
           }
         }
       }
@@ -158,8 +164,8 @@ const Metrics: React.FC<{peerConnection: RTCPeerConnection}> = ({
         unit="ms"
       />
       <Stat
-        points={stats.map(s => s.videoJitterMs ?? 0)}
-        title="Video Jitter"
+        points={stats.map(s => s.videoProcessingDelayMs ?? 0)}
+        title="Video Delay"
         unit="ms"
       />
       <Stat
@@ -168,9 +174,9 @@ const Metrics: React.FC<{peerConnection: RTCPeerConnection}> = ({
         unit="Mbps"
       />
       <Stat
-        points={stats.map(s => s.audioMegabitsPerSecond ?? 0)}
-        title="Audio Bitrate"
-        unit="Mbps"
+        points={stats.map(s => s.framesDroppedPerFrame ?? 0)}
+        title="Frames Dropped"
+        unit="%"
       />
     </Box>
   );
