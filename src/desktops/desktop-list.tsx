@@ -34,7 +34,6 @@ export function useDesktopStatus(emitter: MQTTEmitter | null = null) {
     const {groups: {desktopId} = {desktopId: null}} =
       topic.match(/^desktops\/(?<desktopId>.+)\/status$/) ?? {};
     if (desktopId && value) {
-      console.log(`Desktop ${desktopId} is ${value}`);
       const strValue = Buffer.from(value).toString('utf-8');
       ret[desktopId] = strValue as 'online' | 'offline';
     }

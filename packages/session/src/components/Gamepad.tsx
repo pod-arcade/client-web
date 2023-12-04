@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {gamepadStateToBuffer, useGamepadState} from '../hooks/useGamepad';
-import {InputType} from '../api';
+import {InputType} from '../api/input';
 
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
@@ -13,7 +13,7 @@ import BlockIcon from '@mui/icons-material/Block';
 
 export const Gamepad: React.FC<{
   index: number;
-  dataChannel: RTCDataChannel | null;
+  dataChannel: RTCDataChannel | undefined;
 }> = ({index, dataChannel}) => {
   const gamepad = useGamepadState(index);
   const [previousMessage, setPreviousMessage] = useState<null | Buffer>(null);

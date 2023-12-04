@@ -2,7 +2,7 @@ import {useEffect, useState, useRef} from 'react';
 import IconButton from '@mui/material/IconButton';
 
 import KeyboardIcon from '@mui/icons-material/Keyboard';
-import {mapKeyboardEvent} from '../api';
+import {mapKeyboardEvent} from '../api/input';
 
 declare global {
   interface Navigator {
@@ -25,7 +25,7 @@ declare global {
 }
 
 export const Keyboard: React.FC<{
-  dataChannel: RTCDataChannel | null;
+  dataChannel: RTCDataChannel | undefined;
 }> = ({dataChannel}) => {
   const [active, setActive] = useState(false);
   const buttonElement = useRef<HTMLButtonElement>(null);

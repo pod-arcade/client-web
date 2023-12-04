@@ -6,12 +6,6 @@ import {Mouse} from './components/Mouse';
 import {Keyboard} from './components/Keyboard';
 import Metrics from './components/Metrics';
 
-import {
-  useDataChannel,
-  useNegotiatedPeerConnection,
-  usePeerConnectionState,
-} from './hooks/usePeerConnection';
-
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
 import IconButton from '@mui/material/IconButton';
@@ -19,6 +13,9 @@ import IconButton from '@mui/material/IconButton';
 import VolumeUp from '@mui/icons-material/VolumeUp';
 import VolumeMute from '@mui/icons-material/VolumeMute';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
+
+import useMqtt from './hooks/useMqtt';
+import useSession, {useSessionStatus} from './hooks/useSession';
 
 const Session: React.FC<{
   /** Url to connect to the mqtt server */
@@ -52,13 +49,9 @@ const Session: React.FC<{
   /** Information about the user connecting to the session. Will be published once the session is established */
   userInfo: object;
 }> = ({mqttUrl, mqttCredentials, desktop, sessionId, features}) => {
-  const peerConnection = useNegotiatedPeerConnection(
-    mqttUrl,
-    mqttCredentials,
-    desktop.id,
-    sessionId
-  );
-  const peerConnectionState = usePeerConnectionState(peerConnection);
+  const mqttConnection = useMqtt(mqttUrl, mqttCredentials);
+  const {session} = useSession(desktop.id, mqttConnection);
+  const peerConnectionState = useSessionStatus(session);
 
   const [videoElement, setVideoElement] = useState<HTMLVideoElement>();
 
@@ -66,9 +59,9 @@ const Session: React.FC<{
   const [muted, setMuted] = useState(false);
   const [showMetrics, setShowMetrics] = useState(false);
 
-  const inputChannel = useDataChannel(peerConnection);
+  if (!session || !session.peerConnection) return null; // TODO: probably a loader or something
 
-  if (!peerConnection) return null;
+  // TODO: handle useSession error
 
   return (
     <Box
@@ -91,12 +84,12 @@ const Session: React.FC<{
         <Video
           width="100%"
           height="100%"
-          peerConnection={peerConnection}
+          session={session}
           volume={muted ? 0 : volume}
           onVideoElement={setVideoElement}
         />
       </Box>
-      {showMetrics ? <Metrics peerConnection={peerConnection} /> : null}
+      {showMetrics ? <Metrics peerConnection={session.peerConnection} /> : null}
       <Box
         sx={{
           display: 'flex',
@@ -114,9 +107,14 @@ const Session: React.FC<{
         </Box>
         <Box>
           {features.mouse ? (
-            <Mouse dataChannel={inputChannel} videoElement={videoElement} />
+            <Mouse
+              dataChannel={session.inputDataChannel}
+              videoElement={videoElement}
+            />
           ) : null}
-          {features.keyboard ? <Keyboard dataChannel={inputChannel} /> : null}
+          {features.keyboard ? (
+            <Keyboard dataChannel={session.inputDataChannel} />
+          ) : null}
           {features.gamepads.enabled
             ? new Array(features.gamepads.count)
                 .fill(null)
@@ -124,7 +122,7 @@ const Session: React.FC<{
                   <Gamepad
                     key={index}
                     index={index}
-                    dataChannel={inputChannel}
+                    dataChannel={session.inputDataChannel}
                   />
                 ))
             : null}

@@ -9,7 +9,7 @@ import MouseIcon from '@mui/icons-material/Mouse';
 import BlockIcon from '@mui/icons-material/Block';
 import TouchAppIcon from '@mui/icons-material/TouchApp';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
-import {InputType} from '../api';
+import {InputType} from '../api/input';
 
 declare global {
   interface Element {
@@ -19,7 +19,7 @@ declare global {
 
 export const Mouse: React.FC<{
   videoElement?: HTMLVideoElement;
-  dataChannel: RTCDataChannel | null;
+  dataChannel: RTCDataChannel | undefined;
 }> = ({videoElement, dataChannel}) => {
   const [mouseState, _setMouseState] = useState<'none' | 'pointer' | 'touch'>(
     'none'
