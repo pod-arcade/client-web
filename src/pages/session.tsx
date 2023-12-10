@@ -46,7 +46,7 @@ const SessionPage: React.FC = () => {
           desktop={{id: desktopId, version: '0.0.1'}}
           features={{
             mouse: true,
-            keyboard: false,
+            keyboard: true,
             gamepads: {
               enabled: true,
               count: 4,

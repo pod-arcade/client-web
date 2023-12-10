@@ -8,21 +8,49 @@ export enum InputType {
   GAMEPAD_RUMBLE = 0x05,
 }
 
+type ModifierKeys = 'shiftKey' | 'ctrlKey' | 'altKey' | 'metaKey';
+type MinimalKeyboardEvent = Pick<KeyboardEvent, 'type' | 'code'> &
+  Partial<Pick<KeyboardEvent, ModifierKeys | 'getModifierState'>>;
+
 // #### Keyboard: `0x01`
 // Payload Format:
 // - Byte 0: `0x01`
-// - Byte 1: `0x01` for keydown, `0x00` for keyup
-// - Byte 2-3: Keycode (Linux https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values)
-// Maps os local keycode to linux keycode
-export function mapKeyboardEvent(event: Pick<KeyboardEvent, 'code' | 'type'>) {
+// - Byte 1: Bitpacked key state
+//   - Bit 0: KeyState
+//   - Bit 1: Shift
+//   - Bit 2: Control
+//   - Bit 3: Alt
+//   - Bit 4: Meta
+//   - Bit 5: Caps
+// - Byte 2-3: Keycode (https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values)
+export function mapKeyboardEvent(event: MinimalKeyboardEvent) {
   const keycode = (keycodes as {[code: string]: string})[event.code];
 
   if (keycode) {
+    const caps = event.getModifierState
+      ? event.getModifierState('CapsLock')
+      : false;
+    const shift = event.shiftKey ?? false;
+    const ctrl = event.ctrlKey ?? false;
+    const alt = event.altKey ?? false;
+    const meta = event.metaKey ?? false;
+
+    const keyState = event.type === 'keydown' ? 0x01 : 0x00;
+
     const payload = Buffer.alloc(4);
     payload.writeInt8(InputType.KEYBOARD, 0);
-    payload.writeInt8(event.type === 'keydown' ? 0x01 : 0x00, 1);
+    payload.writeInt8(
+      keyState |
+        (shift ? 0x02 : 0x00) |
+        (ctrl ? 0x04 : 0x00) |
+        (alt ? 0x08 : 0x00) |
+        (meta ? 0x10 : 0x00) |
+        (caps ? 0x20 : 0x00),
+      1
+    );
+    const keycodeByte = Buffer.from(keycode, 'hex').readInt16BE(0);
+    payload.writeInt16LE(keycodeByte, 2);
 
-    Buffer.from(keycode, 'hex').copy(payload, 2);
     return payload;
   } else {
     console.warn('Could not find keycode for event', event);
