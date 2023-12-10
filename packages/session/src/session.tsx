@@ -110,6 +110,7 @@ const Session: React.FC<{
             <Mouse
               dataChannel={session.inputDataChannel}
               videoElement={videoElement}
+              supportTouchScreen={false}
             />
           ) : null}
           {features.keyboard ? (

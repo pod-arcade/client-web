@@ -20,7 +20,8 @@ declare global {
 export const Mouse: React.FC<{
   videoElement?: HTMLVideoElement;
   dataChannel: RTCDataChannel | undefined;
-}> = ({videoElement, dataChannel}) => {
+  supportTouchScreen: boolean;
+}> = ({videoElement, dataChannel, supportTouchScreen}) => {
   const [mouseState, _setMouseState] = useState<'none' | 'pointer' | 'touch'>(
     'none'
   );
@@ -97,6 +98,23 @@ export const Mouse: React.FC<{
       );
     };
   }, [dataChannel, videoElement, mouseState]);
+
+  if (!supportTouchScreen) {
+    return (
+      <IconButton
+        onClick={() => {
+          if (mouseState === 'none') {
+            setMouseState('pointer');
+            capturePointer();
+          } else {
+            // no-op
+          }
+        }}
+      >
+        <MouseIcon color={mouseState === 'none' ? 'disabled' : 'primary'} />
+      </IconButton>
+    );
+  }
 
   return (
     <>
