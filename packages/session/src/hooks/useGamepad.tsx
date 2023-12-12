@@ -33,55 +33,56 @@ export type GamepadState = {
   AxisRightTrigger: number;
 };
 
-export const useGamepadState = (index: number) => {
-  const [gamepadState, setGamepadState] = useState<GamepadState | null>(null);
+export const useGamepads = () => {
+  const [gamepads, setGamepads] = useState<Gamepad[]>([]);
   useEffect(() => {
-    let handle: number;
     const cb = () => {
-      const gamepad = navigator.getGamepads()[index];
-      setGamepadState(
-        gamepad
-          ? ({
-              ButtonNorth: gamepad.buttons[3].pressed,
-              ButtonSouth: gamepad.buttons[0].pressed,
-              ButtonWest: gamepad.buttons[2].pressed,
-              ButtonEast: gamepad.buttons[1].pressed,
-
-              ButtonBumperLeft: gamepad.buttons[4].pressed,
-              ButtonBumperRight: gamepad.buttons[5].pressed,
-
-              ButtonThumbLeft: gamepad.buttons[10].pressed,
-              ButtonThumbRight: gamepad.buttons[11].pressed,
-
-              ButtonSelect: gamepad.buttons[8].pressed,
-              ButtonStart: gamepad.buttons[9].pressed,
-
-              ButtonDpadUp: gamepad.buttons[12].pressed,
-              ButtonDpadDown: gamepad.buttons[13].pressed,
-              ButtonDpadLeft: gamepad.buttons[14].pressed,
-              ButtonDpadRight: gamepad.buttons[15].pressed,
-
-              ButtonMode: gamepad.buttons[16].pressed,
-
-              AxisLeftX: gamepad.axes[0],
-              AxisLeftY: gamepad.axes[1],
-              AxisRightX: gamepad.axes[2],
-              AxisRightY: gamepad.axes[3],
-
-              AxisLeftTrigger: gamepad.buttons[6].value,
-              AxisRightTrigger: gamepad.buttons[7].value,
-
-              // buttons: [...gamepad.buttons.map((b) => b.pressed)],
-            } as GamepadState)
-          : null
-      );
-      handle = requestAnimationFrame(cb);
+      setGamepads(navigator.getGamepads().filter(g => g !== null) as Gamepad[]);
     };
-    handle = requestAnimationFrame(cb);
-    return () => cancelAnimationFrame(handle);
-  }, [index]);
+    cb();
+    window.addEventListener('gamepadconnected', cb);
+    window.addEventListener('gamepaddisconnected', cb);
+    return () => {
+      window.removeEventListener('gamepadconnected', cb);
+      window.removeEventListener('gamepaddisconnected', cb);
+    };
+  }, []);
+  return gamepads;
+};
 
-  return gamepadState;
+export const getGamepadState = (gamepad: Gamepad) => {
+  return {
+    ButtonNorth: gamepad.buttons[3].pressed,
+    ButtonSouth: gamepad.buttons[0].pressed,
+    ButtonWest: gamepad.buttons[2].pressed,
+    ButtonEast: gamepad.buttons[1].pressed,
+
+    ButtonBumperLeft: gamepad.buttons[4].pressed,
+    ButtonBumperRight: gamepad.buttons[5].pressed,
+
+    ButtonThumbLeft: gamepad.buttons[10].pressed,
+    ButtonThumbRight: gamepad.buttons[11].pressed,
+
+    ButtonSelect: gamepad.buttons[8].pressed,
+    ButtonStart: gamepad.buttons[9].pressed,
+
+    ButtonDpadUp: gamepad.buttons[12].pressed,
+    ButtonDpadDown: gamepad.buttons[13].pressed,
+    ButtonDpadLeft: gamepad.buttons[14].pressed,
+    ButtonDpadRight: gamepad.buttons[15].pressed,
+
+    ButtonMode: gamepad.buttons[16].pressed,
+
+    AxisLeftX: gamepad.axes[0],
+    AxisLeftY: gamepad.axes[1],
+    AxisRightX: gamepad.axes[2],
+    AxisRightY: gamepad.axes[3],
+
+    AxisLeftTrigger: gamepad.buttons[6].value,
+    AxisRightTrigger: gamepad.buttons[7].value,
+
+    // buttons: [...gamepad.buttons.map((b) => b.pressed)],
+  } as GamepadState;
 };
 
 export function gamepadStateToBuffer(gamepadState: GamepadState): Buffer {

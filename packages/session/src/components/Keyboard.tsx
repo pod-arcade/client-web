@@ -26,7 +26,8 @@ declare global {
 
 export const Keyboard: React.FC<{
   dataChannel: RTCDataChannel | undefined;
-}> = ({dataChannel}) => {
+  fullscreenRef: React.RefObject<HTMLDivElement>;
+}> = ({dataChannel, fullscreenRef}) => {
   const [active, setActive] = useState(false);
   const buttonElement = useRef<HTMLButtonElement>(null);
 
@@ -37,7 +38,26 @@ export const Keyboard: React.FC<{
         event.preventDefault();
       }
       if (active && !event.repeat) {
-        event.preventDefault();
+        if (event.code === 'Escape') {
+          if (event.type === 'keydown') {
+            console.log('Detected Escape key down. Ignoring');
+            return;
+          } else {
+            // If we are no longer in fullscreen, that means the lock has been released
+            if (!document.fullscreenElement) {
+              setActive(false);
+              console.log('Detected keyboard unlock. Ignoring');
+              return;
+            }
+
+            const keyDown = mapKeyboardEvent({code: 'Escape', type: 'keydown'});
+            if (dataChannel?.readyState === 'open') {
+              console.log('Sending keyboard event', keyDown?.toString('hex'));
+              dataChannel.send(keyDown!);
+            }
+          }
+        }
+
         const ev = mapKeyboardEvent(event);
         if (ev && dataChannel?.readyState === 'open') {
           console.log('Sending keyboard event', ev?.toString('hex'));
@@ -55,9 +75,9 @@ export const Keyboard: React.FC<{
   }, [dataChannel, active]);
 
   useEffect(() => {
-    if (navigator.keyboard) {
+    if (fullscreenRef.current && navigator.keyboard) {
       if (active) {
-        document.documentElement
+        fullscreenRef.current
           .requestFullscreen({
             navigationUI: 'hide',
           })
@@ -72,14 +92,6 @@ export const Keyboard: React.FC<{
       } else {
         navigator.keyboard.unlock();
         console.log('Keyboard unlocked');
-        if (document.fullscreenElement) {
-          document.exitFullscreen();
-        }
-        const ev = mapKeyboardEvent({code: 'Escape', type: 'keyup'});
-        if (ev && dataChannel?.readyState === 'open') {
-          console.log('Sending keyboard event', ev?.toString('hex'));
-          dataChannel.send(ev);
-        }
       }
     } else {
       // TODO: Do something else. Maybe just don't try locking the keyboard
@@ -91,15 +103,17 @@ export const Keyboard: React.FC<{
 
   useEffect(() => {
     const fullscreenListener = () => {
+      console.log('Fullscreen change', !!document.fullscreenElement);
       if (!document.fullscreenElement) {
         setActive(false);
       }
     };
+    console.log('Adding fullscreen listener');
     document.addEventListener('fullscreenchange', fullscreenListener);
     return () => {
       document.removeEventListener('fullscreenchange', fullscreenListener);
     };
-  });
+  }, []);
 
   return (
     <IconButton

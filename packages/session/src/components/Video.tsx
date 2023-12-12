@@ -45,9 +45,15 @@ const Video: React.FunctionComponent<{
         playsInline={true}
         style={{
           background: 'black',
+          pointerEvents: 'none',
         }}
       />
-      <audio ref={audioRef} autoPlay={true} controls={false} muted={false} />
+      <audio
+        ref={audioRef}
+        autoPlay={true}
+        controls={false}
+        muted={volume === 0}
+      />
     </>
   );
 };

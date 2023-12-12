@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useRef} from 'react';
 import {Sparklines, SparklinesLine} from '@jrwats/react-sparklines';
-import {lighten, useTheme} from '@mui/material/styles';
+import {useTheme} from '@mui/material/styles';
 import useComponentSize from '@rehooks/component-size';
 
 import Box from '@mui/material/Box';
@@ -44,7 +44,7 @@ const Stat: React.FC<{points: number[]; title: string; unit: string}> = ({
         padding: '0.5rem',
         display: 'flex',
         flexDirection: 'row',
-        background: lighten(theme.palette.background.paper, 0.1),
+        background: '#000',
         borderRadius: '0.5rem',
         flexGrow: 1,
       }}

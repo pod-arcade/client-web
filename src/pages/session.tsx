@@ -1,5 +1,5 @@
 import Session from '@pod-arcade/session';
-import {useParams} from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 
 import {useRandomId} from '../hooks/useRandomId';
 
@@ -11,6 +11,7 @@ const SessionPage: React.FC = () => {
   const {desktopId} = useParams<{desktopId: string}>();
   const sessionId = useRandomId();
   const auth = useAuth();
+  const navigate = useNavigate();
 
   if (!desktopId || !auth) return null;
 
@@ -54,6 +55,9 @@ const SessionPage: React.FC = () => {
           }}
           sessionId={sessionId}
           userInfo={{name: auth?.username || 'unknown'}}
+          onBackClick={() => {
+            navigate('/');
+          }}
         />
       </Card>
     </Box>
