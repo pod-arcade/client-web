@@ -60,3 +60,5 @@ const SessionPage: React.FC = () => {
   );
 };
 export default SessionPage;
+
+import React from 'react';
