@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import Box from '@mui/material/Box';
 
@@ -11,22 +11,26 @@ const ControlsContainer: React.FC<
   React.PropsWithChildren<{
     session: SessionPeerConnection;
     showMetrics: boolean;
+    collapse: boolean;
     video: React.ReactElement;
   }>
-> = ({session, video, showMetrics, children}) => {
+> = ({session, video, collapse, showMetrics, children}) => {
   const container = useRef<HTMLDivElement>(null);
   const [showControls, setShowControls] = useState(true);
 
+  const hide = useCallback(() => {
+    // This is a bit of a hack, but if there is a popover in the document, don't hide the controls
+    if (
+      !collapse ||
+      document.getElementsByClassName('MuiPopover-root').length > 0
+    ) {
+      return;
+    }
+    setShowControls(false);
+  }, [collapse]);
+
   useEffect(() => {
     if (!container.current) return;
-
-    // This is a bit of a hack, but if there is a popover in the document, don't hide the controls
-    const hide = () => {
-      if (document.getElementsByClassName('MuiPopover-root').length > 0) {
-        return;
-      }
-      setShowControls(false);
-    };
 
     // when mouse enter or mouse move, restart timer to show controls
     let showControlsTimer: NodeJS.Timeout | undefined = undefined;
@@ -52,7 +56,7 @@ const ControlsContainer: React.FC<
       container.current.removeEventListener('mousemove', restartTimer);
       container.current.removeEventListener('mouseleave', hide);
     };
-  }, [container]);
+  }, [container, hide]);
 
   const transition = `${showControls ? '0.1s' : '0.7s'} ease-in-out`;
 

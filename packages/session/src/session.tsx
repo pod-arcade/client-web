@@ -3,7 +3,7 @@ import React, {useRef, useState} from 'react';
 import ControlsContainer from './components/ControlsContainer';
 import Video from './components/Video';
 import {Gamepad} from './components/Gamepad';
-import {Mouse} from './components/Mouse';
+import {Mouse, MouseState} from './components/Mouse';
 import {Keyboard} from './components/Keyboard';
 
 import Box from '@mui/material/Box';
@@ -64,6 +64,8 @@ const Session: React.FC<{
 
   const [videoElement, setVideoElement] = useState<HTMLVideoElement>();
 
+  const [mouseState, setMouseState] = useState<MouseState>('none');
+  const [keyboardActive, setKeyboardActive] = useState(false);
   const [volume, setVolume] = useState(1); // TODO: default from local storage
   const [muted, setMuted] = useState(false);
   const [showMetrics, setShowMetrics] = useState(false);
@@ -140,6 +142,7 @@ const Session: React.FC<{
             onVideoElement={setVideoElement}
           />
         }
+        collapse={mouseState === 'none' && !keyboardActive}
         showMetrics={showMetrics}
       >
         <Box
@@ -167,12 +170,16 @@ const Session: React.FC<{
                 dataChannel={session.inputDataChannel}
                 videoElement={videoElement}
                 supportTouchScreen={false}
+                mouseState={mouseState}
+                onMouseStateChange={setMouseState}
               />
             ) : null}
             {features.keyboard ? (
               <Keyboard
                 dataChannel={session.inputDataChannel}
                 fullscreenRef={fullscreenRef}
+                active={keyboardActive}
+                onActiveChange={setKeyboardActive}
               />
             ) : null}
             {features.gamepads.enabled

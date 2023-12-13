@@ -30,3 +30,7 @@ const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(<RouterProvider router={router} />);
+
+document.addEventListener('gesturestart', e => {
+  e.preventDefault();
+});

@@ -17,23 +17,34 @@ declare global {
   }
 }
 
+export type MouseState = 'none' | 'pointer' | 'touch';
+
 export const Mouse: React.FC<{
   videoElement?: HTMLVideoElement;
   dataChannel: RTCDataChannel | undefined;
   supportTouchScreen: boolean;
-}> = ({videoElement, dataChannel, supportTouchScreen}) => {
-  const [mouseState, _setMouseState] = useState<'none' | 'pointer' | 'touch'>(
-    'none'
-  );
+  mouseState: MouseState;
+  onMouseStateChange?: (state: MouseState) => void;
+}> = ({
+  videoElement,
+  dataChannel,
+  supportTouchScreen,
+  mouseState,
+  onMouseStateChange,
+}) => {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const supportsMouse =
+    typeof document.documentElement.requestPointerLock === 'function';
 
   const setMouseState = useCallback((state: 'none' | 'pointer' | 'touch') => {
-    _setMouseState(state);
+    if (onMouseStateChange) {
+      onMouseStateChange(state);
+    }
     setAnchorEl(null);
   }, []);
 
   const capturePointer = useCallback(() => {
-    if (videoElement) {
+    if (videoElement && supportsMouse) {
       videoElement.requestPointerLock({
         unadjustedMovement: true,
       });
@@ -45,15 +56,58 @@ export const Mouse: React.FC<{
       return;
     }
 
+    let previousTouch: TouchEvent | null = null;
     const mouseListener = (event: MouseEvent | TouchEvent) => {
       if (!dataChannel || dataChannel.readyState !== 'open') {
         return;
       }
-      if (
-        mouseState === 'pointer' &&
-        document.pointerLockElement === videoElement
-      ) {
-        const payload = mapMouseEvent(event);
+      if (mouseState === 'pointer') {
+        event.preventDefault();
+        let payload: Buffer | null = null;
+        if (event instanceof TouchEvent) {
+          const e = event as TouchEvent;
+          if (event.type === 'touchend') {
+            console.log('end', event);
+            // If touch start and touch end without touch move, then send a click event
+            if (
+              previousTouch &&
+              previousTouch.type === 'touchstart' &&
+              previousTouch.touches[0].clientX ===
+                e.changedTouches[0].clientX &&
+              previousTouch.touches[0].clientY === e.changedTouches[0].clientY
+            ) {
+              const mouseDown = mapMouseEvent({
+                buttons: 1,
+                movementX: 0,
+                movementY: 0,
+              });
+              console.debug(
+                'Sending mouse movement',
+                mouseDown.toString('hex')
+              );
+              dataChannel.send(mouseDown);
+              payload = mapMouseEvent({
+                buttons: 0,
+                movementX: 0,
+                movementY: 0,
+              });
+            }
+          } else if (event.type === 'touchmove' && previousTouch) {
+            const deltaX =
+              e.touches[0].clientX - previousTouch.touches[0].clientX;
+            const deltaY =
+              e.touches[0].clientY - previousTouch.touches[0].clientY;
+            console.log('move', deltaX, deltaY);
+            payload = mapMouseEvent({
+              buttons: 0,
+              movementX: deltaX,
+              movementY: deltaY,
+            });
+          }
+          previousTouch = event;
+        } else {
+          payload = mapMouseEvent(event);
+        }
         if (!payload) {
           return;
         }
@@ -67,7 +121,10 @@ export const Mouse: React.FC<{
     videoElement.addEventListener('mousedown', mouseListener);
     videoElement.addEventListener('mouseup', mouseListener);
     videoElement.addEventListener('touchstart', mouseListener);
+    videoElement.addEventListener('touchmove', mouseListener);
     videoElement.addEventListener('touchend', mouseListener);
+
+    console.log('Mouse bound', videoElement);
 
     const pointerLockChangeListener = () => {
       if (document.pointerLockElement === videoElement) {
@@ -93,6 +150,9 @@ export const Mouse: React.FC<{
       videoElement.removeEventListener('mousemove', mouseListener);
       videoElement.removeEventListener('mousedown', mouseListener);
       videoElement.removeEventListener('mouseup', mouseListener);
+      videoElement.removeEventListener('touchstart', mouseListener);
+      videoElement.removeEventListener('touchmove', mouseListener);
+      videoElement.removeEventListener('touchend', mouseListener);
       document.removeEventListener(
         'pointerlockchange',
         pointerLockChangeListener
@@ -108,7 +168,7 @@ export const Mouse: React.FC<{
             setMouseState('pointer');
             capturePointer();
           } else {
-            // no-op
+            setMouseState('none');
           }
         }}
       >

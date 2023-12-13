@@ -58,20 +58,16 @@ export function mapKeyboardEvent(event: MinimalKeyboardEvent) {
   }
 }
 
-export function mapMouseEvent(event: MouseEvent | TouchEvent) {
-  if (event.type === 'touchstart' || event.type === 'touchend') {
-    console.warn('Touch events not yet supported');
-    return null;
-  } else {
-    const mouseEvent = event as MouseEvent;
-    const payload = Buffer.alloc(18);
-    payload.writeUInt8(InputType.MOUSE, 0);
-    payload.writeUInt8(mouseEvent.buttons, 1); // TODO: bitpack button state
-    payload.writeFloatLE(mouseEvent.movementX, 2); // X velocity
-    payload.writeFloatLE(mouseEvent.movementY, 6); // Y velocity
-    payload.writeFloatLE(0, 10); // TODO: Scroll X
-    payload.writeFloatLE(0, 14); // TODO: Scroll Y
+export function mapMouseEvent(
+  event: Pick<MouseEvent, 'buttons' | 'movementX' | 'movementY'>
+) {
+  const payload = Buffer.alloc(18);
+  payload.writeUInt8(InputType.MOUSE, 0);
+  payload.writeUInt8(event.buttons, 1); // TODO: bitpack button state
+  payload.writeFloatLE(event.movementX, 2); // X velocity
+  payload.writeFloatLE(event.movementY, 6); // Y velocity
+  payload.writeFloatLE(0, 10); // TODO: Scroll X
+  payload.writeFloatLE(0, 14); // TODO: Scroll Y
 
-    return payload;
-  }
+  return payload;
 }

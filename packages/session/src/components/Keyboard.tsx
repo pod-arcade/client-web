@@ -27,8 +27,9 @@ declare global {
 export const Keyboard: React.FC<{
   dataChannel: RTCDataChannel | undefined;
   fullscreenRef: React.RefObject<HTMLDivElement>;
-}> = ({dataChannel, fullscreenRef}) => {
-  const [active, setActive] = useState(false);
+  active: boolean;
+  onActiveChange: (active: boolean) => void;
+}> = ({dataChannel, fullscreenRef, active, onActiveChange}) => {
   const buttonElement = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export const Keyboard: React.FC<{
           } else {
             // If we are no longer in fullscreen, that means the lock has been released
             if (!document.fullscreenElement) {
-              setActive(false);
+              onActiveChange(false);
               console.log('Detected keyboard unlock. Ignoring');
               return;
             }
@@ -98,14 +99,36 @@ export const Keyboard: React.FC<{
       console.warn(
         'navigator.keyboard not available. The Escape key wont be usable'
       );
+
+      if (active) {
+        // create a fake input and focus it
+        const input = document.createElement('input');
+        input.id = 'fake-input';
+        input.type = 'text';
+        input.style.position = 'absolute';
+        input.style.opacity = '0';
+        input.style.pointerEvents = 'none';
+        document.body.appendChild(input);
+        input.focus();
+        input.addEventListener('blur', () => {
+          document.body.removeChild(input);
+          onActiveChange(false);
+        });
+      } else {
+        // unfocus the input
+        const input = document.getElementById('fake-input');
+        if (input) {
+          input.blur();
+        }
+      }
     }
-  }, [active]);
+  }, [fullscreenRef.current, active]);
 
   useEffect(() => {
     const fullscreenListener = () => {
       console.log('Fullscreen change', !!document.fullscreenElement);
       if (!document.fullscreenElement) {
-        setActive(false);
+        onActiveChange(false);
       }
     };
     console.log('Adding fullscreen listener');
@@ -118,7 +141,7 @@ export const Keyboard: React.FC<{
   return (
     <IconButton
       onClick={() => {
-        setActive(!active);
+        onActiveChange(!active);
       }}
       ref={buttonElement}
     >

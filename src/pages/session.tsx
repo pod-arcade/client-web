@@ -26,15 +26,15 @@ const SessionPage: React.FC = () => {
         left: 0,
         right: 0,
         padding: '1rem',
-        height: '100vh',
+        height: '100%',
+        flex: 1,
         display: 'flex',
         width: '100vw',
       }}
     >
       <Card
         sx={{
-          height: '100%',
-          width: '100%',
+          flex: 1,
         }}
         elevation={0}
       >

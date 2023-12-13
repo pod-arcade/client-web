@@ -46,7 +46,7 @@ const Video: React.FunctionComponent<{
         playsInline={true}
         style={{
           background: 'black',
-          pointerEvents: 'none',
+          // pointerEvents: 'none',
         }}
       />
       <audio

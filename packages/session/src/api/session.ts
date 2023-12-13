@@ -1,5 +1,5 @@
 import EventEmitter from 'events';
-import MqttBrokerConnection, {InvalidCredentialsError, MqttCredentials} from './mqtt';
+import MqttBrokerConnection, {MqttCredentials} from './mqtt';
 
 export class PeerConnectionTimeoutError extends Error {
   constructor() {
