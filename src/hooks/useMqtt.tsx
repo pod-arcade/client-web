@@ -58,12 +58,11 @@ export const useMqttConnection = (offlineTopic: string | null = null) => {
     });
     client.on('error', e => {
       console.error(`mqtt ${connectionId} error`, e);
-      if (
-        auth.method === 'psk' &&
-        e instanceof mqtt.ErrorWithReasonCode &&
-        e.code === 5
-      ) {
-        !psk.loading && psk.setError(new Error('Invalid password'));
+      if (auth.method === 'psk' && e instanceof mqtt.ErrorWithReasonCode) {
+        console.warn('Error code', e.code);
+        if (e.code === 5 || e.code === 134) {
+          !psk.loading && psk.setError(new Error('Invalid password'));
+        }
       }
     });
     return () => {

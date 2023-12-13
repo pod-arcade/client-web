@@ -83,7 +83,10 @@ export default class MqttBrokerConnection {
       });
       this.client!.once('error', err => {
         console.error(`mqtt ${this.connectionId} connection error`, err);
-        if (err instanceof mqtt.ErrorWithReasonCode && err.code === 5) {
+        if (
+          err instanceof mqtt.ErrorWithReasonCode &&
+          (err.code === 5 || err.code === 134)
+        ) {
           reject(new InvalidCredentialsError());
           this.client!.end();
         } else {

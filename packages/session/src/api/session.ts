@@ -1,5 +1,5 @@
 import EventEmitter from 'events';
-import MqttBrokerConnection, {MqttCredentials} from './mqtt';
+import MqttBrokerConnection, {InvalidCredentialsError, MqttCredentials} from './mqtt';
 
 export class PeerConnectionTimeoutError extends Error {
   constructor() {
@@ -65,7 +65,14 @@ export default class SessionPeerConnection {
   public async connect(): Promise<void> {
     console.log('connecting');
     this.subs = [];
-    await this.mqttBrokerConnection.connect(this.statusTopic);
+    try {
+      await this.mqttBrokerConnection.connect(this.statusTopic);
+    } catch (e) {
+      console.error('Error connecting to mqtt', e);
+      this.failed = true;
+      this.emitter.emit('connectionstatechange', 'failed');
+      throw e;
+    }
 
     this.mqttBrokerConnection.on('reconnect', () => {
       this.mqttBrokerConnection.publish(this.statusTopic, this.status, true);

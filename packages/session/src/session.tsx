@@ -113,14 +113,19 @@ const Session: React.FC<{
             </>
           ) : null}
           {['disconnected', 'failed'].includes(peerConnectionState) ? (
-            <Button
-              sx={{marginTop: '1rem'}}
-              variant="outlined"
-              color="info"
-              onClick={reconnect}
-            >
-              Reconnect
-            </Button>
+            <Box sx={{marginTop: '1rem'}}>
+              <Button
+                color="info"
+                onClick={onBackClick}
+                sx={{marginRight: '1rem'}}
+                startIcon={<ArrowBack />}
+              >
+                Back
+              </Button>
+              <Button variant="outlined" color="info" onClick={reconnect}>
+                Reconnect
+              </Button>
+            </Box>
           ) : null}
         </Box>
       </Backdrop>
