@@ -20,6 +20,7 @@ import ShowChartIcon from '@mui/icons-material/ShowChart';
 import Fullscreen from '@mui/icons-material/Fullscreen';
 import FullscreenExit from '@mui/icons-material/FullscreenExit';
 import ArrowBack from '@mui/icons-material/ArrowBack';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 
 import useSession, {useSessionStatus} from './hooks/useSession';
 import useFullscreenElement from './hooks/useFullscreenElement';
@@ -34,11 +35,8 @@ const Session: React.FC<{
     password: string;
   };
 
-  /** Information about the Desktop being connected to */
-  desktop: {
-    id: string;
-    version: string;
-  };
+  /** What to prefix all mqtt topics with. If running the self-hosted version, this will be `desktops/{{desktopId}}` */
+  mqttTopicPrefix: string;
 
   /** List of features to enable for this session */
   features: {
@@ -54,9 +52,17 @@ const Session: React.FC<{
   userInfo: object;
 
   onBackClick?: () => void;
-}> = ({mqttUrl, mqttCredentials, desktop, features, onBackClick}) => {
+  onShareClick?: () => void;
+}> = ({
+  mqttUrl,
+  mqttCredentials,
+  mqttTopicPrefix,
+  features,
+  onBackClick,
+  onShareClick,
+}) => {
   const {session, reconnect, error} = useSession(
-    desktop.id,
+    mqttTopicPrefix,
     mqttUrl,
     mqttCredentials
   );
@@ -203,6 +209,13 @@ const Session: React.FC<{
               <ShowChartIcon />
             </IconButton>
           </Box>
+          {onShareClick ? (
+            <Box>
+              <IconButton size="small" onClick={onShareClick}>
+                <ManageAccountsIcon />
+              </IconButton>
+            </Box>
+          ) : null}
           <Box
             sx={{
               display: 'flex',

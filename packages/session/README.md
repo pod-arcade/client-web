@@ -28,7 +28,10 @@ const App = () => {
           password: '',
         }
       }
-      desktop={{id: 'desktop-id', version: '0.0.1'}}
+      mqttTopicPrefix={
+        /* Prefix for the MQTT topics used by the Pod Arcade server */
+        'desktops/{{desktopId}}',
+      }
       features={{
         mouse: true,
         keyboard: true,

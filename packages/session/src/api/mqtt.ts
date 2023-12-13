@@ -1,5 +1,5 @@
 import MQTTEmitter, {SubscriptionCallback} from 'mqtt-emitter';
-import * as mqtt from 'mqtt';
+import mqtt from 'mqtt';
 
 export interface MqttCredentials {
   username: string;

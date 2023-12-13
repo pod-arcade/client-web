@@ -20,14 +20,17 @@ export default class SessionPeerConnection {
   private emitter = new EventEmitter();
 
   private iceCandidateQueue = new Array<RTCIceCandidate>();
-  private statusTopic = `desktops/${this.desktopId}/sessions/${this.sessionId}/status`;
+  private statusTopic = `${this.topicPrefix}/sessions/${this.sessionId}/status`;
   private failed = false;
 
   constructor(
-    private desktopId: string,
+    private topicPrefix: string,
     mqttUrl: string,
     mqttCredentials?: MqttCredentials
   ) {
+    if (topicPrefix.endsWith('/')) {
+      this.topicPrefix = topicPrefix.slice(0, -1);
+    }
     this.mqttBrokerConnection = new MqttBrokerConnection(
       mqttUrl,
       mqttCredentials
@@ -194,9 +197,9 @@ export default class SessionPeerConnection {
     });
 
     const answer = await this.mqttRequestResponse(
-      `desktops/${this.desktopId}/sessions/${this.sessionId}/webrtc-offer`,
+      `${this.topicPrefix}/sessions/${this.sessionId}/webrtc-offer`,
       this.peerConnection.localDescription!.sdp,
-      `desktops/${this.desktopId}/sessions/${this.sessionId}/webrtc-answer`,
+      `${this.topicPrefix}/sessions/${this.sessionId}/webrtc-answer`,
       5000
     ).catch(e => {
       console.error('Error getting answer', e);
@@ -311,8 +314,8 @@ export default class SessionPeerConnection {
       throw new Error('peerConnection not initialized');
     }
 
-    const offerIceCandidateTopic = `desktops/${this.desktopId}/sessions/${this.sessionId}/offer-ice-candidate`;
-    const answerIceCandidateTopic = `desktops/${this.desktopId}/sessions/${this.sessionId}/answer-ice-candidate`;
+    const offerIceCandidateTopic = `${this.topicPrefix}/sessions/${this.sessionId}/offer-ice-candidate`;
+    const answerIceCandidateTopic = `${this.topicPrefix}/sessions/${this.sessionId}/answer-ice-candidate`;
 
     // Send any locally discovered candidates to the desktop
     this.peerConnection.onicecandidate = async (

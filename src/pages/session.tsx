@@ -41,7 +41,7 @@ const SessionPage: React.FC = () => {
         <Session
           mqttUrl={mqttUrl}
           mqttCredentials={{username: auth.username, password: auth.password}}
-          desktop={{id: desktopId, version: '0.0.1'}}
+          mqttTopicPrefix={`desktops/${desktopId}`}
           features={{
             mouse: true,
             keyboard: true,

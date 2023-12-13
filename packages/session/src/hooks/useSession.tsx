@@ -3,7 +3,7 @@ import {MqttCredentials} from '../api/mqtt';
 import SessionPeerConnection from '../api/session';
 
 export default function useSession(
-  desktopId: string,
+  topicPrefix: string,
   mqttUrl: string,
   mqttCredentials?: MqttCredentials
 ) {
@@ -13,7 +13,7 @@ export default function useSession(
 
   useEffect(() => {
     const session = new SessionPeerConnection(
-      desktopId,
+      topicPrefix,
       mqttUrl,
       mqttCredentials
     );
@@ -22,7 +22,7 @@ export default function useSession(
     return () => {
       session.disconnect();
     };
-  }, [mqttUrl, mqttCredentials, desktopId, reconnectCounter]);
+  }, [mqttUrl, mqttCredentials, topicPrefix, reconnectCounter]);
 
   return {session, error, reconnect: () => setReconnectCounter(c => c + 1)};
 }
