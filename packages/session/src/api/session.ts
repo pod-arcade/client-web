@@ -39,16 +39,16 @@ export default class SessionPeerConnection {
   }
 
   get status(): RTCPeerConnectionState {
-    if (!this.mqttBrokerConnection.connected) {
-      return 'disconnected';
-    } else {
-      if (!this.peerConnection) {
-        return 'new';
-      } else if (this.failed) {
-        return 'failed';
+    if (!this.peerConnection) {
+      if (!this.mqttBrokerConnection.connected) {
+        return 'disconnected';
       } else {
-        return this.peerConnection.connectionState;
+        return 'new';
       }
+    } else if (this.failed) {
+      return 'failed';
+    } else {
+      return this.peerConnection.connectionState;
     }
   }
 
@@ -66,6 +66,11 @@ export default class SessionPeerConnection {
     console.log('connecting');
     this.subs = [];
     await this.mqttBrokerConnection.connect(this.statusTopic);
+
+    this.mqttBrokerConnection.on('reconnect', () => {
+      this.mqttBrokerConnection.publish(this.statusTopic, this.status, true);
+    });
+
     try {
       await Promise.race([
         this.connectToDesktop(),
