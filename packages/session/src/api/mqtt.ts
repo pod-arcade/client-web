@@ -14,7 +14,7 @@ export class InvalidCredentialsError extends Error {
 }
 
 export default class MqttBrokerConnection {
-  protected connectionId = Math.random().toString(36).substring(2, 9);
+  public connectionId = Math.random().toString(36).substring(2, 9);
   private emitter: MQTTEmitter | undefined;
   private client: mqtt.MqttClient | undefined;
   private offlineTopic: string | null = null;

@@ -32,6 +32,7 @@ export default class SessionPeerConnection {
       mqttUrl,
       mqttCredentials
     );
+    this.mqttBrokerConnection.connectionId = this.sessionId;
     this.on('connectionstatechange', () => {
       this.mqttBrokerConnection.publish(this.statusTopic, this.status, true);
     });
