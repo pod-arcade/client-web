@@ -52,12 +52,28 @@ export default class MqttBrokerConnection {
     this.emitter = new MQTTEmitter();
 
     this.client.on('message', this.emitter.emit.bind(this.emitter));
-    this.client.on('packetsend', p =>
-      console.log(`mqtt ${this.connectionId} packetsend`, p)
-    );
-    this.client.on('packetreceive', p =>
-      console.log(`mqtt ${this.connectionId} packetreceive`, p)
-    );
+    this.client.on('packetsend', p => {
+      if (p.cmd === 'publish') {
+        console.debug(`mqtt ${this.connectionId} packetsend`, {
+          cmd: p.cmd,
+          topic: p.topic,
+          payload: p.payload?.toString(),
+        });
+      } else {
+        console.debug(`mqtt ${this.connectionId} packetsend`, p);
+      }
+    });
+    this.client.on('packetreceive', p => {
+      if (p.cmd === 'publish') {
+        console.debug(`mqtt ${this.connectionId} packetreceive`, {
+          cmd: p.cmd,
+          topic: p.topic,
+          payload: p.payload?.toString(),
+        });
+      } else {
+        console.debug(`mqtt ${this.connectionId} packetreceive`, p);
+      }
+    });
     this.emitter.onadd = this.client.subscribe.bind(this.client);
     this.emitter.onremove = this.client.unsubscribe.bind(this.client);
 
@@ -78,7 +94,7 @@ export default class MqttBrokerConnection {
   }
 
   public async disconnect() {
-    if (this.client) {
+    if (this.client && this.client.connected) {
       if (this.offlineTopic) {
         await this.publish(this.offlineTopic, 'offline', true);
       }

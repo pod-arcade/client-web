@@ -54,10 +54,6 @@ const ControlsContainer: React.FC<
     };
   }, [container]);
 
-  if (!session.peerConnection) {
-    return null;
-  }
-
   const transition = `${showControls ? '0.1s' : '0.7s'} ease-in-out`;
 
   return (

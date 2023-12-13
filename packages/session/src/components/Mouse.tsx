@@ -9,7 +9,7 @@ import MouseIcon from '@mui/icons-material/Mouse';
 import BlockIcon from '@mui/icons-material/Block';
 import TouchAppIcon from '@mui/icons-material/TouchApp';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
-import {InputType} from '../api/input';
+import {InputType, mapMouseEvent} from '../api/input';
 
 declare global {
   interface Element {
@@ -45,7 +45,7 @@ export const Mouse: React.FC<{
       return;
     }
 
-    const mouseListener = (event: MouseEvent) => {
+    const mouseListener = (event: MouseEvent | TouchEvent) => {
       if (!dataChannel || dataChannel.readyState !== 'open') {
         return;
       }
@@ -53,15 +53,11 @@ export const Mouse: React.FC<{
         mouseState === 'pointer' &&
         document.pointerLockElement === videoElement
       ) {
-        const payload = Buffer.alloc(18);
-        payload.writeUInt8(InputType.MOUSE, 0);
-        payload.writeUInt8(event.buttons, 1); // TODO: bitpack button state
-        payload.writeFloatLE(event.movementX, 2); // X velocity
-        payload.writeFloatLE(event.movementY, 6); // Y velocity
-        payload.writeFloatLE(0, 10); // TODO: Scroll X
-        payload.writeFloatLE(0, 14); // TODO: Scroll Y
-
-        console.log('Sending mouse movement', payload.toString('hex'));
+        const payload = mapMouseEvent(event);
+        if (!payload) {
+          return;
+        }
+        console.debug('Sending mouse movement', payload.toString('hex'));
         dataChannel.send(payload);
       } else if (mouseState === 'touch') {
         console.warn('Mouse state touch not implemented');
@@ -70,6 +66,8 @@ export const Mouse: React.FC<{
     videoElement.addEventListener('mousemove', mouseListener);
     videoElement.addEventListener('mousedown', mouseListener);
     videoElement.addEventListener('mouseup', mouseListener);
+    videoElement.addEventListener('touchstart', mouseListener);
+    videoElement.addEventListener('touchend', mouseListener);
 
     const pointerLockChangeListener = () => {
       if (document.pointerLockElement === videoElement) {
@@ -80,7 +78,10 @@ export const Mouse: React.FC<{
         if (dataChannel?.readyState === 'open') {
           const payload = Buffer.alloc(18);
           payload.writeUInt8(InputType.MOUSE, 0);
-          console.log('Sending reset mouse movement', payload.toString('hex'));
+          console.debug(
+            'Sending reset mouse movement',
+            payload.toString('hex')
+          );
           dataChannel.send(payload); // Reset mouse button state (all zeros)
         }
 

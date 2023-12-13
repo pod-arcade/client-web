@@ -1,15 +1,12 @@
 import Session from '@pod-arcade/session';
 import {useNavigate, useParams} from 'react-router-dom';
 
-import {useRandomId} from '../hooks/useRandomId';
-
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import {useAuth} from '../hooks/useAuth';
 
 const SessionPage: React.FC = () => {
   const {desktopId} = useParams<{desktopId: string}>();
-  const sessionId = useRandomId();
   const auth = useAuth();
   const navigate = useNavigate();
 
@@ -53,7 +50,6 @@ const SessionPage: React.FC = () => {
               count: 4,
             },
           }}
-          sessionId={sessionId}
           userInfo={{name: auth?.username || 'unknown'}}
           onBackClick={() => {
             navigate('/');

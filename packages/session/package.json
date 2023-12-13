@@ -57,6 +57,6 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "watch": "nodemon -e \"tsx\" --exec \"npm run build\""
+    "watch": "nodemon -e \"tsx,ts\" -w src/ --exec \"npm run build\""
   }
 }

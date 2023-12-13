@@ -9,6 +9,10 @@ import {Keyboard} from './components/Keyboard';
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
 import IconButton from '@mui/material/IconButton';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
 
 import VolumeUp from '@mui/icons-material/VolumeUp';
 import VolumeMute from '@mui/icons-material/VolumeMute';
@@ -17,7 +21,6 @@ import Fullscreen from '@mui/icons-material/Fullscreen';
 import FullscreenExit from '@mui/icons-material/FullscreenExit';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 
-import useMqtt from './hooks/useMqtt';
 import useSession, {useSessionStatus} from './hooks/useSession';
 import useFullscreenElement from './hooks/useFullscreenElement';
 
@@ -37,9 +40,6 @@ const Session: React.FC<{
     version: string;
   };
 
-  /** Unique identifier for the session */
-  sessionId: string;
-
   /** List of features to enable for this session */
   features: {
     mouse: boolean;
@@ -54,16 +54,12 @@ const Session: React.FC<{
   userInfo: object;
 
   onBackClick?: () => void;
-}> = ({
-  mqttUrl,
-  mqttCredentials,
-  desktop,
-  sessionId,
-  features,
-  onBackClick,
-}) => {
-  const mqttConnection = useMqtt(mqttUrl, mqttCredentials);
-  const {session} = useSession(desktop.id, mqttConnection);
+}> = ({mqttUrl, mqttCredentials, desktop, features, onBackClick}) => {
+  const {session, reconnect, error} = useSession(
+    desktop.id,
+    mqttUrl,
+    mqttCredentials
+  );
   const peerConnectionState = useSessionStatus(session);
 
   const [videoElement, setVideoElement] = useState<HTMLVideoElement>();
@@ -75,9 +71,7 @@ const Session: React.FC<{
   const fullscreenRef = useRef<HTMLDivElement>(null);
   const fullscreenElement = useFullscreenElement();
 
-  if (!session || !session.peerConnection) return null; // TODO: probably a loader or something
-
-  // TODO: handle useSession error
+  if (!session) return null; // TODO: probably a loader or something
 
   return (
     <Box
@@ -91,6 +85,45 @@ const Session: React.FC<{
         height: '100%',
       }}
     >
+      <Backdrop
+        sx={{color: '#fff', zIndex: theme => theme.zIndex.drawer + 1}}
+        open={peerConnectionState !== 'connected'}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            maxWidth: '400px',
+            textAlign: 'center',
+          }}
+        >
+          {['new', 'connecting'].includes(peerConnectionState) ? (
+            <>
+              <CircularProgress sx={{marginBottom: '1rem'}} color="inherit" />
+              Connecting...
+            </>
+          ) : null}
+          {peerConnectionState === 'disconnected' ? 'Disconnected.' : null}
+          {peerConnectionState === 'failed' ? (
+            <>
+              <Typography variant="h6">Connection to desktop failed</Typography>
+              <Typography variant="subtitle2">{error?.message}</Typography>
+            </>
+          ) : null}
+          {['disconnected', 'failed'].includes(peerConnectionState) ? (
+            <Button
+              sx={{marginTop: '1rem'}}
+              variant="outlined"
+              color="info"
+              onClick={reconnect}
+            >
+              Reconnect
+            </Button>
+          ) : null}
+        </Box>
+      </Backdrop>
       <ControlsContainer
         session={session}
         video={
@@ -121,7 +154,7 @@ const Session: React.FC<{
             </IconButton>
           ) : null}
           <Box sx={{flexGrow: 1}}>
-            <b>Session {sessionId}</b> - {peerConnectionState}
+            <b>Session {session.sessionId}</b> - {peerConnectionState}
           </Box>
           <Box>
             {features.mouse ? (

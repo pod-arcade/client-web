@@ -52,7 +52,7 @@ export const Keyboard: React.FC<{
 
             const keyDown = mapKeyboardEvent({code: 'Escape', type: 'keydown'});
             if (dataChannel?.readyState === 'open') {
-              console.log('Sending keyboard event', keyDown?.toString('hex'));
+              console.debug('Sending keyboard event', keyDown?.toString('hex'));
               dataChannel.send(keyDown!);
             }
           }
@@ -60,7 +60,7 @@ export const Keyboard: React.FC<{
 
         const ev = mapKeyboardEvent(event);
         if (ev && dataChannel?.readyState === 'open') {
-          console.log('Sending keyboard event', ev?.toString('hex'));
+          console.debug('Sending keyboard event', ev?.toString('hex'));
           dataChannel.send(ev);
         }
       }

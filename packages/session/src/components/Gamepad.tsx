@@ -59,7 +59,7 @@ export const Gamepad: React.FC<{
           newMessage.copy(payload, 2);
           payload.writeUInt8(InputType.GAMEPAD, 0);
           payload.writeUInt8(serverIndex, 1);
-          console.log(
+          console.debug(
             `Sending Input (${clientIndex} -> ${serverIndex})`,
             payload.toString('hex')
           );

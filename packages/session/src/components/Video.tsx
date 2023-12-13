@@ -1,5 +1,6 @@
 import 'webrtc-adapter';
 import React, {useEffect, useRef} from 'react';
+
 import SessionPeerConnection from '../api/session';
 
 const Video: React.FunctionComponent<{

@@ -85,7 +85,7 @@ const Stat: React.FC<{points: number[]; title: string; unit: string}> = ({
   );
 };
 
-const Metrics: React.FC<{peerConnection: RTCPeerConnection}> = ({
+const Metrics: React.FC<{peerConnection?: RTCPeerConnection}> = ({
   peerConnection,
 }) => {
   const [stats, setStats] = useState<
@@ -107,7 +107,7 @@ const Metrics: React.FC<{peerConnection: RTCPeerConnection}> = ({
       framesDroppedTotal?: number;
     } = {};
     const interval = setInterval(async () => {
-      if (peerConnection.connectionState !== 'connected') {
+      if (!peerConnection || peerConnection.connectionState !== 'connected') {
         return;
       }
 

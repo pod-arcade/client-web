@@ -1,24 +1,30 @@
 import {useEffect, useState} from 'react';
-import MqttBrokerConnection from '../api/mqtt';
+import {MqttCredentials} from '../api/mqtt';
 import SessionPeerConnection from '../api/session';
 
 export default function useSession(
   desktopId: string,
-  mqttBrokerConnection: MqttBrokerConnection | undefined
+  mqttUrl: string,
+  mqttCredentials?: MqttCredentials
 ) {
   const [session, setSession] = useState<SessionPeerConnection>();
   const [error, setError] = useState<Error>();
+  const [reconnectCounter, setReconnectCounter] = useState(0);
+
   useEffect(() => {
-    if (!mqttBrokerConnection) return;
-    const session = new SessionPeerConnection(desktopId, mqttBrokerConnection);
+    const session = new SessionPeerConnection(
+      desktopId,
+      mqttUrl,
+      mqttCredentials
+    );
     setSession(session);
     session.connect().catch(e => setError(e));
     return () => {
       session.disconnect();
     };
-  }, [mqttBrokerConnection, desktopId]);
+  }, [mqttUrl, mqttCredentials, desktopId, reconnectCounter]);
 
-  return {session, error};
+  return {session, error, reconnect: () => setReconnectCounter(c => c + 1)};
 }
 
 export function useSessionStatus(session: SessionPeerConnection | undefined) {
