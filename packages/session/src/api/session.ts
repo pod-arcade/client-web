@@ -20,16 +20,22 @@ export default class SessionPeerConnection {
   private emitter = new EventEmitter();
 
   private iceCandidateQueue = new Array<RTCIceCandidate>();
-  private statusTopic = `${this.topicPrefix}/sessions/${this.sessionId}/status`;
   private failed = false;
+  private topicPrefix: string;
+
+  private get statusTopic() {
+    return `${this.topicPrefix}/sessions/${this.sessionId}/status`;
+  }
 
   constructor(
-    private topicPrefix: string,
+    topicPrefix: string,
     mqttUrl: string,
     mqttCredentials?: MqttCredentials
   ) {
     if (topicPrefix.endsWith('/')) {
       this.topicPrefix = topicPrefix.slice(0, -1);
+    } else {
+      this.topicPrefix = topicPrefix;
     }
     this.mqttBrokerConnection = new MqttBrokerConnection(
       mqttUrl,
