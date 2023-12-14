@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import * as mqtt from 'mqtt';
+import mqtt from 'mqtt';
 import MQTTEmitter, {SubscriptionCallback} from 'mqtt-emitter';
 import {useRandomId} from './useRandomId';
 import {useAuth, usePsk} from './useAuth';
