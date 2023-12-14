@@ -160,8 +160,6 @@ export default class SessionPeerConnection {
    * @returns a list of ice servers to use for the peer connection
    */
   private async getIceServers(): Promise<RTCIceServer[]> {
-    return [];
-    // TODO: add desktop-specific ice-servers
     const iceServersPromise = new Promise<RTCIceServer[]>(resolve => {
       const unsub = this.mqttBrokerConnection.subscribe(
         'server/ice-servers',
