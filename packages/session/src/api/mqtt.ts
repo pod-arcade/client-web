@@ -1,5 +1,5 @@
 import MQTTEmitter, {SubscriptionCallback} from 'mqtt-emitter';
-import {connect, MqttClient, ErrorWithReasonCode} from 'mqtt';
+import mqtt from 'mqtt';
 
 export interface MqttCredentials {
   username: string;
@@ -16,7 +16,7 @@ export class InvalidCredentialsError extends Error {
 export default class MqttBrokerConnection {
   public connectionId = Math.random().toString(36).substring(2, 9);
   private emitter: MQTTEmitter | undefined;
-  private client: MqttClient | undefined;
+  private client: mqtt.MqttClient | undefined;
   private offlineTopic: string | null = null;
   constructor(
     private host: string,
@@ -34,7 +34,7 @@ export default class MqttBrokerConnection {
       this.credentials
     );
 
-    this.client = connect(this.host, {
+    this.client = mqtt.connect(this.host, {
       username: this.credentials?.username,
       password: this.credentials?.password,
       clientId: this.credentials?.clientId ?? `user:${this.connectionId}`,
@@ -87,7 +87,7 @@ export default class MqttBrokerConnection {
       this.client!.once('error', err => {
         console.error(`mqtt ${this.connectionId} connection error`, err);
         if (
-          err instanceof ErrorWithReasonCode &&
+          err instanceof mqtt.ErrorWithReasonCode &&
           (err.code === 5 || err.code === 134)
         ) {
           reject(new InvalidCredentialsError());
