@@ -176,15 +176,20 @@ export default class SessionPeerConnection {
       this.subs.push(unsub);
     });
 
-    return Promise.race([
+    let raceDone = false;
+    const race = await Promise.race([
       iceServersPromise,
       new Promise<RTCIceServer[]>(res =>
         setTimeout(() => {
-          console.warn('Timeout waiting for ice servers, using none');
+          if (!raceDone) {
+            console.warn('Timeout waiting for ice servers, using none');
+          }
           res([]);
         }, 2500)
       ),
     ]);
+    raceDone = true;
+    return race;
   }
 
   /**
