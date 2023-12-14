@@ -40,6 +40,9 @@ export default class MqttBrokerConnection {
       clientId: this.credentials?.clientId ?? `user:${this.connectionId}`,
       clean: false,
       protocolVersion: 5,
+      properties: {
+        sessionExpiryInterval: 60,
+      },
       will: offlineTopic
         ? {
             topic: offlineTopic,

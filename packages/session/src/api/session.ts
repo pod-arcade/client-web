@@ -179,7 +179,12 @@ export default class SessionPeerConnection {
 
     return Promise.race([
       iceServersPromise,
-      new Promise<RTCIceServer[]>(res => setTimeout(() => res([]), 5000)),
+      new Promise<RTCIceServer[]>(res =>
+        setTimeout(() => {
+          console.warn('Timeout waiting for ice servers, using none');
+          res([]);
+        }, 2500)
+      ),
     ]);
   }
 
