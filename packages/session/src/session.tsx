@@ -5,6 +5,7 @@ import Video from './components/Video';
 import {Gamepad} from './components/Gamepad';
 import {Mouse, MouseState} from './components/Mouse';
 import {Keyboard} from './components/Keyboard';
+import RequestUserMediaBanner from './components/RequestUserMediaBanner';
 
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
@@ -121,19 +122,22 @@ const Session: React.FC<{
             </>
           ) : null}
           {['disconnected', 'failed'].includes(peerConnectionState) ? (
-            <Box sx={{marginTop: '1rem'}}>
-              <Button
-                color="info"
-                onClick={onBackClick}
-                sx={{marginRight: '1rem'}}
-                startIcon={<ArrowBack />}
-              >
-                Back
-              </Button>
-              <Button variant="outlined" color="info" onClick={reconnect}>
-                Reconnect
-              </Button>
-            </Box>
+            <>
+              <Box sx={{marginTop: '1rem'}}>
+                <Button
+                  color="info"
+                  onClick={onBackClick}
+                  sx={{marginRight: '1rem'}}
+                  startIcon={<ArrowBack />}
+                >
+                  Back
+                </Button>
+                <Button variant="outlined" color="info" onClick={reconnect}>
+                  Reconnect
+                </Button>
+              </Box>
+              <RequestUserMediaBanner onGrant={reconnect} />
+            </>
           ) : null}
         </Box>
       </Backdrop>
