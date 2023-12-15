@@ -6,17 +6,15 @@ import {Gamepad} from './components/Gamepad';
 import {Mouse, MouseState} from './components/Mouse';
 import {Keyboard} from './components/Keyboard';
 import RequestUserMediaBanner from './components/RequestUserMediaBanner';
+import VolumeSlider from './components/VolumeSlider';
 
 import Box from '@mui/material/Box';
-import Slider from '@mui/material/Slider';
 import IconButton from '@mui/material/IconButton';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
-import VolumeUp from '@mui/icons-material/VolumeUp';
-import VolumeMute from '@mui/icons-material/VolumeMute';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import Fullscreen from '@mui/icons-material/Fullscreen';
 import FullscreenExit from '@mui/icons-material/FullscreenExit';
@@ -79,6 +77,9 @@ const Session: React.FC<{
 
   const fullscreenRef = useRef<HTMLDivElement>(null);
   const fullscreenElement = useFullscreenElement();
+  const supportsFullscreen =
+    !fullscreenRef.current ||
+    fullscreenRef.current.requestFullscreen !== undefined;
 
   if (!session) return null; // TODO: probably a loader or something
 
@@ -152,6 +153,7 @@ const Session: React.FC<{
             onVideoElement={setVideoElement}
           />
         }
+        onBackClick={onBackClick}
         collapse={mouseState === 'none' && !keyboardActive}
         showMetrics={showMetrics}
       >
@@ -166,14 +168,6 @@ const Session: React.FC<{
             padding: '0 0.5rem',
           }}
         >
-          {onBackClick ? (
-            <IconButton size="small" onClick={onBackClick}>
-              <ArrowBack />
-            </IconButton>
-          ) : null}
-          <Box sx={{flexGrow: 1}}>
-            <b>Session {session.sessionId}</b> - {peerConnectionState}
-          </Box>
           <Box>
             {features.mouse ? (
               <Mouse
@@ -204,6 +198,7 @@ const Session: React.FC<{
                   ))
               : null}
           </Box>
+          <Box sx={{flex: '1'}}></Box>
           <Box>
             <IconButton
               size="small"
@@ -220,53 +215,30 @@ const Session: React.FC<{
               </IconButton>
             </Box>
           ) : null}
-          <Box
-            sx={{
-              display: 'flex',
-              maxWidth: '7rem',
-              width: '100%',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <IconButton
-              onClick={() => {
-                setMuted(!muted);
-              }}
-              color="secondary"
-              size="small"
-              disabled={peerConnectionState !== 'connected'}
-            >
-              {muted ? <VolumeMute /> : <VolumeUp />}
-            </IconButton>
-            <Slider
-              sx={{width: '100%', margin: '0 0.5rem'}}
-              value={muted ? 0 : volume}
-              disabled={peerConnectionState !== 'connected' || muted}
-              color="secondary"
-              size="small"
-              min={0}
-              max={1}
-              step={0.01}
-              onChange={(_, value) => setVolume(value as number)}
-            />
-          </Box>
-          <Box>
-            <IconButton
-              size="small"
-              disabled={peerConnectionState !== 'connected'}
-              onClick={() => {
-                if (fullscreenElement) {
-                  document.exitFullscreen();
-                } else {
-                  fullscreenRef.current?.requestFullscreen();
-                }
-              }}
-            >
-              {fullscreenElement ? <FullscreenExit /> : <Fullscreen />}
-            </IconButton>
-          </Box>
+          <VolumeSlider
+            volume={volume}
+            setVolume={setVolume}
+            muted={muted}
+            setMuted={setMuted}
+            disabled={peerConnectionState !== 'connected'}
+          />
+          {supportsFullscreen ? (
+            <Box>
+              <IconButton
+                size="small"
+                disabled={peerConnectionState !== 'connected'}
+                onClick={() => {
+                  if (fullscreenElement) {
+                    document.exitFullscreen();
+                  } else {
+                    fullscreenRef.current?.requestFullscreen();
+                  }
+                }}
+              >
+                {fullscreenElement ? <FullscreenExit /> : <Fullscreen />}
+              </IconButton>
+            </Box>
+          ) : null}
         </Box>
       </ControlsContainer>
     </Box>

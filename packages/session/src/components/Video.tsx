@@ -31,6 +31,7 @@ const Video: React.FunctionComponent<{
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
+      console.log({volume, set: audioRef.current.volume});
     }
   }, [audioRef, volume]);
 

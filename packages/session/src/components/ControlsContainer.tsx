@@ -1,11 +1,14 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
+import ArrowBack from '@mui/icons-material/ArrowBack';
 
 import Metrics from './Metrics';
 import Favicon from '../assets/favicon';
 
 import SessionPeerConnection from '../api/session';
+import {useSessionStatus} from '../hooks/useSession';
 
 const ControlsContainer: React.FC<
   React.PropsWithChildren<{
@@ -13,21 +16,24 @@ const ControlsContainer: React.FC<
     showMetrics: boolean;
     collapse: boolean;
     video: React.ReactElement;
+    onBackClick?: () => void;
   }>
-> = ({session, video, collapse, showMetrics, children}) => {
+> = ({session, video, collapse, showMetrics, onBackClick, children}) => {
   const container = useRef<HTMLDivElement>(null);
   const [showControls, setShowControls] = useState(true);
+  const peerConnectionState = useSessionStatus(session);
 
   const hide = useCallback(() => {
-    // This is a bit of a hack, but if there is a popover in the document, don't hide the controls
     if (
       !collapse ||
+      peerConnectionState !== 'connected' ||
+      // This is a bit of a hack, but if there is a popover in the document, don't hide the controls
       document.getElementsByClassName('MuiPopover-root').length > 0
     ) {
       return;
     }
     setShowControls(false);
-  }, [collapse]);
+  }, [collapse, peerConnectionState]);
 
   useEffect(() => {
     if (!container.current) return;
@@ -70,17 +76,52 @@ const ControlsContainer: React.FC<
         position: 'relative',
       }}
     >
-      <Favicon
+      {video}
+      <Box
         sx={{
           position: 'absolute',
           top: 0,
           left: 0,
-          margin: '1rem',
-          transition: `opacity ${transition}`,
-          opacity: showControls ? 0.6 : 0.25,
+          right: 0,
+          padding: '0.5rem 1rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          transition: `background-color ${transition}`,
+          backgroundColor: showControls ? 'rgba(0, 0, 0, 0.8)' : 'transparent',
         }}
-      />
-      {video}
+      >
+        <Box
+          sx={{
+            transition: `opacity ${transition}`,
+            opacity: showControls ? 1 : 0,
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          {onBackClick ? (
+            <IconButton
+              size="small"
+              onClick={onBackClick}
+              sx={{
+                marginLeft: '-5px',
+              }}
+            >
+              <ArrowBack />
+            </IconButton>
+          ) : null}
+          <Box>
+            <b>Session {session.sessionId}</b> - {peerConnectionState}
+          </Box>
+        </Box>
+        <Favicon
+          sx={{
+            transition: `opacity ${transition}`,
+            opacity: showControls ? 0.6 : 0.25,
+          }}
+        />
+      </Box>
       <Box
         sx={{
           position: 'absolute',

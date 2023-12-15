@@ -107,7 +107,10 @@ const DesktopList: React.FC = () => {
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'center',
-        alignItems: 'stretch',
+        alignItems: 'center',
+        maxHeight: '100%',
+        overflow: 'auto',
+        padding: 2,
       }}
     >
       {Object.entries(desktops)

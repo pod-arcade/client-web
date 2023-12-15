@@ -1,3 +1,4 @@
+import React from 'react';
 import Session from '@pod-arcade/session';
 import {useNavigate, useParams} from 'react-router-dom';
 
@@ -25,7 +26,9 @@ const SessionPage: React.FC = () => {
         bottom: 0,
         left: 0,
         right: 0,
-        padding: '1rem',
+        padding: {
+          lg: '1rem',
+        },
         height: '100%',
         flex: 1,
         display: 'flex',
@@ -51,6 +54,7 @@ const SessionPage: React.FC = () => {
             },
           }}
           userInfo={{name: auth?.username || 'unknown'}}
+          onShareClick={() => {}}
           onBackClick={() => {
             navigate('/');
           }}
@@ -60,5 +64,3 @@ const SessionPage: React.FC = () => {
   );
 };
 export default SessionPage;
-
-import React from 'react';
