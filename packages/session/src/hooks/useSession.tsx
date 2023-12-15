@@ -32,7 +32,13 @@ export function useSessionStatus(session: SessionPeerConnection | undefined) {
     session?.status ?? 'new'
   );
   useEffect(() => {
-    if (!session) return;
+    if (!session) {
+      if (status !== 'new') {
+        console.log('session status', 'new');
+        setStatus('new');
+      }
+      return;
+    }
     return session.on('connectionstatechange', status => {
       console.log('session status', status);
       setStatus(status);
