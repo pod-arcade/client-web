@@ -19,7 +19,7 @@ import ShowChartIcon from '@mui/icons-material/ShowChart';
 import Fullscreen from '@mui/icons-material/Fullscreen';
 import FullscreenExit from '@mui/icons-material/FullscreenExit';
 import ArrowBack from '@mui/icons-material/ArrowBack';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import Share from '@mui/icons-material/Share';
 
 import useSession, {useSessionStatus} from './hooks/useSession';
 import useFullscreenElement from './hooks/useFullscreenElement';
@@ -211,7 +211,7 @@ const Session: React.FC<{
           {onShareClick ? (
             <Box>
               <IconButton size="small" onClick={onShareClick}>
-                <ManageAccountsIcon />
+                <Share />
               </IconButton>
             </Box>
           ) : null}
