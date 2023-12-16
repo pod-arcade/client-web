@@ -71,7 +71,6 @@ const ControlsContainer: React.FC<
       ref={container}
       sx={{
         flexGrow: 1,
-        overflow: 'hidden',
         width: '100%',
         position: 'relative',
       }}

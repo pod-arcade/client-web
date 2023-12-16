@@ -210,7 +210,11 @@ const Session: React.FC<{
           </Box>
           {onShareClick ? (
             <Box>
-              <IconButton size="small" onClick={onShareClick}>
+              <IconButton
+                size="small"
+                onClick={onShareClick}
+                disabled={peerConnectionState !== 'connected'}
+              >
                 <Share />
               </IconButton>
             </Box>
