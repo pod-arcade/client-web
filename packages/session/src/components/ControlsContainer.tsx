@@ -82,6 +82,7 @@ const ControlsContainer: React.FC<
           top: 0,
           left: 0,
           right: 0,
+          overflow: 'hidden',
           padding: '0.5rem 1rem',
           display: 'flex',
           alignItems: 'center',
@@ -124,9 +125,10 @@ const ControlsContainer: React.FC<
       <Box
         sx={{
           position: 'absolute',
-          bottom: showControls ? 0 : '-3rem',
+          bottom: 0,
+          transform: showControls ? 'translateY(0)' : 'translateY(3rem)',
           opacity: showControls ? 1 : 0.6,
-          transition: ['bottom', 'opacity', 'background-color']
+          transition: ['transform', 'opacity', 'background-color']
             .map(s => `${s} ${transition}`)
             .join(', '),
           overflow: 'hidden',

@@ -93,6 +93,7 @@ const Session: React.FC<{
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
+        overflow: 'hidden',
       }}
     >
       <Backdrop
