@@ -36,7 +36,7 @@
     "@mui/icons-material": "^5.14.11",
     "@mui/material": "^5.14.11",
     "@rehooks/component-size": "^1.0.3",
-    "mqtt": "^5.0.3",
+    "mqtt": "^5.0.0 >=5.3.3",
     "mqtt-emitter": "^4.1.0",
     "webrtc-adapter": "^8.2.3"
   },
@@ -58,5 +58,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "watch": "nodemon -e \"tsx,ts\" -w src/ --exec \"npm run build\""
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }

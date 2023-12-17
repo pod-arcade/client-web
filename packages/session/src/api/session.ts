@@ -1,7 +1,9 @@
 import EventEmitter from 'events';
 import MqttBrokerConnection, {MqttCredentials} from './mqtt';
 
-export class PeerConnectionTimeoutError extends Error {
+export class TimeoutError extends Error {}
+
+export class PeerConnectionTimeoutError extends TimeoutError {
   constructor() {
     super('Timed out connecting to desktop');
   }
@@ -160,36 +162,46 @@ export default class SessionPeerConnection {
    * @returns a list of ice servers to use for the peer connection
    */
   private async getIceServers(): Promise<RTCIceServer[]> {
-    const iceServersPromise = new Promise<RTCIceServer[]>(resolve => {
-      const unsub = this.mqttBrokerConnection.subscribe(
-        'server/ice-servers',
-        (data: Uint8Array) => {
-          try {
-            const iceServers = JSON.parse(data.toString());
-            resolve(iceServers);
-            unsub();
-          } catch (e) {
-            console.error('Error creating PeerConnection', e);
-          }
-        }
-      );
-      this.subs.push(unsub);
-    });
-
-    let raceDone = false;
-    const race = await Promise.race([
-      iceServersPromise,
-      new Promise<RTCIceServer[]>(res =>
-        setTimeout(() => {
-          if (!raceDone) {
-            console.warn('Timeout waiting for ice servers, using none');
-          }
-          res([]);
-        }, 2500)
+    const [serverIceServers, desktopIceServers] = await Promise.allSettled([
+      this.mqttRequestResponse(null, null, 'server/ice-servers', 1000),
+      this.mqttRequestResponse(
+        null,
+        null,
+        `${this.topicPrefix}/ice-servers`,
+        1000
       ),
     ]);
-    raceDone = true;
-    return race;
+
+    console.log(
+      desktopIceServers.status === 'rejected' && desktopIceServers.reason
+    );
+
+    const iceServers: RTCIceServer[] = [];
+    if (
+      serverIceServers.status === 'rejected' &&
+      serverIceServers.reason instanceof TimeoutError
+    ) {
+      console.warn('Timeout waiting for ice servers from server, using none');
+    } else if (
+      serverIceServers.status === 'fulfilled' &&
+      serverIceServers.value.length
+    ) {
+      iceServers.push(...JSON.parse(serverIceServers.value.toString()));
+    }
+
+    if (
+      desktopIceServers.status === 'rejected' &&
+      desktopIceServers.reason instanceof TimeoutError
+    ) {
+      console.warn('Timeout waiting for ice servers from desktop, using none');
+    } else if (
+      desktopIceServers.status === 'fulfilled' &&
+      desktopIceServers.value.length
+    ) {
+      iceServers.push(...JSON.parse(desktopIceServers.value.toString()));
+    }
+
+    return iceServers;
   }
 
   /**
@@ -250,39 +262,45 @@ export default class SessionPeerConnection {
 
   /**
    * Sends a message on an mqtt topic and waits for a response on a different topic, with a timeout
+   * Set requestTopic and requestPayload to null if you don't want to send a request
    */
   private async mqttRequestResponse(
-    requestTopic: string,
-    requestPayload: string | Uint8Array,
+    requestTopic: string | null,
+    requestPayload: string | Uint8Array | null,
     responseTopic: string,
     timeoutMs?: number
   ): Promise<string | Uint8Array> {
+    let unsub: () => void = () => {};
     const responsePromises = [
       new Promise<string | Uint8Array>(resolve => {
-        const unsub = this.mqttBrokerConnection.subscribe(
+        unsub = this.mqttBrokerConnection.subscribe(
           responseTopic,
           (data: Uint8Array) => {
             resolve(data);
-            unsub();
           }
         );
-        this.subs.push(unsub);
       }),
     ];
     if (timeoutMs !== undefined) {
       responsePromises.push(
         new Promise((_, reject) =>
           setTimeout(
-            () => reject(new Error('Timeout waiting for response')),
+            () => reject(new TimeoutError('Timeout waiting for response')),
             timeoutMs
           )
         )
       );
     }
 
-    this.mqttBrokerConnection.publish(requestTopic, requestPayload);
+    if (requestTopic !== null && requestPayload !== null) {
+      this.mqttBrokerConnection.publish(requestTopic, requestPayload);
+    }
 
-    return await Promise.race(responsePromises);
+    try {
+      return await Promise.race(responsePromises);
+    } finally {
+      unsub();
+    }
   }
 
   /**
