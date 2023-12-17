@@ -25,7 +25,6 @@ const ControlsContainer: React.FC<
 
   const hide = useCallback(() => {
     if (
-      !collapse ||
       peerConnectionState !== 'connected' ||
       // This is a bit of a hack, but if there is a popover in the document, don't hide the controls
       document.getElementsByClassName('MuiPopover-root').length > 0
@@ -33,7 +32,7 @@ const ControlsContainer: React.FC<
       return;
     }
     setShowControls(false);
-  }, [collapse, peerConnectionState]);
+  }, [peerConnectionState]);
 
   useEffect(() => {
     if (!container.current) return;
@@ -47,7 +46,7 @@ const ControlsContainer: React.FC<
         return;
       }
       setShowControls(true);
-      showControlsTimer = setTimeout(hide, 5000);
+      showControlsTimer = setTimeout(hide, 2500);
     };
     container.current.addEventListener('mouseenter', restartTimer);
     container.current.addEventListener('mousemove', restartTimer);
@@ -127,7 +126,8 @@ const ControlsContainer: React.FC<
         sx={{
           position: 'absolute',
           bottom: 0,
-          transform: showControls ? 'translateY(0)' : 'translateY(3rem)',
+          transform:
+            showControls || !collapse ? 'translateY(0)' : 'translateY(3rem)',
           opacity: showControls ? 1 : 0.6,
           transition: ['transform', 'opacity', 'background-color']
             .map(s => `${s} ${transition}`)
@@ -145,7 +145,7 @@ const ControlsContainer: React.FC<
         <Box
           sx={{
             transition: `opacity ${showControls ? '0.1s' : '0.7s'} ease-in-out`,
-            opacity: showControls ? 1 : 0,
+            opacity: showControls ? 1 : collapse ? 0 : 0.6,
             height: '3rem',
             overflow: 'hidden',
           }}
