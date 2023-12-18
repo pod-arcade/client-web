@@ -172,10 +172,6 @@ export default class SessionPeerConnection {
       ),
     ]);
 
-    console.log(
-      desktopIceServers.status === 'rejected' && desktopIceServers.reason
-    );
-
     const iceServers: RTCIceServer[] = [];
     if (
       serverIceServers.status === 'rejected' &&
