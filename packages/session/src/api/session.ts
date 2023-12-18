@@ -186,7 +186,11 @@ export default class SessionPeerConnection {
       serverIceServers.status === 'fulfilled' &&
       serverIceServers.value.length
     ) {
-      iceServers.push(...JSON.parse(serverIceServers.value.toString()));
+      try {
+        iceServers.push(...JSON.parse(serverIceServers.value.toString()));
+      } catch (e) {
+        console.error('Error parsing ice servers from desktop', e);
+      }
     }
 
     if (
@@ -198,7 +202,11 @@ export default class SessionPeerConnection {
       desktopIceServers.status === 'fulfilled' &&
       desktopIceServers.value.length
     ) {
-      iceServers.push(...JSON.parse(desktopIceServers.value.toString()));
+      try {
+        iceServers.push(...JSON.parse(desktopIceServers.value.toString()));
+      } catch (e) {
+        console.error('Error parsing ice servers from desktop', e);
+      }
     }
 
     return iceServers;
