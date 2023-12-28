@@ -64,7 +64,7 @@ export const Mouse: React.FC<{
       if (mouseState === 'pointer') {
         event.preventDefault();
         let payload: Buffer | null = null;
-        if (event instanceof TouchEvent) {
+        if (['touchstart', 'touchmove', 'touchend'].includes(event.type)) {
           const e = event as TouchEvent;
           if (event.type === 'touchend') {
             console.log('end', event);
@@ -104,9 +104,9 @@ export const Mouse: React.FC<{
               movementY: deltaY,
             });
           }
-          previousTouch = event;
+          previousTouch = e;
         } else {
-          payload = mapMouseEvent(event);
+          payload = mapMouseEvent(event as MouseEvent);
         }
         if (!payload) {
           return;
