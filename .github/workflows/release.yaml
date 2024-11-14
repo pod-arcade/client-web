@@ -16,7 +16,7 @@ jobs:
       - run: npm run build -ws
       - run: npm run build
       - run: tar -czf client-web.tar.gz build
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: client-web
           path: client-web.tar.gz
