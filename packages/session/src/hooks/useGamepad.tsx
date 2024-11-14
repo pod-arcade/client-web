@@ -52,26 +52,26 @@ export const useGamepads = () => {
 
 export const getGamepadState = (gamepad: Gamepad) => {
   return {
-    ButtonNorth: gamepad.buttons[3].pressed,
-    ButtonSouth: gamepad.buttons[0].pressed,
-    ButtonWest: gamepad.buttons[2].pressed,
-    ButtonEast: gamepad.buttons[1].pressed,
+    ButtonNorth: gamepad.buttons[3]?.pressed,
+    ButtonSouth: gamepad.buttons[0]?.pressed,
+    ButtonWest: gamepad.buttons[2]?.pressed,
+    ButtonEast: gamepad.buttons[1]?.pressed,
 
-    ButtonBumperLeft: gamepad.buttons[4].pressed,
-    ButtonBumperRight: gamepad.buttons[5].pressed,
+    ButtonBumperLeft: gamepad.buttons[4]?.pressed,
+    ButtonBumperRight: gamepad.buttons[5]?.pressed,
 
-    ButtonThumbLeft: gamepad.buttons[10].pressed,
-    ButtonThumbRight: gamepad.buttons[11].pressed,
+    ButtonThumbLeft: gamepad.buttons[10]?.pressed,
+    ButtonThumbRight: gamepad.buttons[11]?.pressed,
 
-    ButtonSelect: gamepad.buttons[8].pressed,
-    ButtonStart: gamepad.buttons[9].pressed,
+    ButtonSelect: gamepad.buttons[8]?.pressed,
+    ButtonStart: gamepad.buttons[9]?.pressed,
 
-    ButtonDpadUp: gamepad.buttons[12].pressed,
-    ButtonDpadDown: gamepad.buttons[13].pressed,
-    ButtonDpadLeft: gamepad.buttons[14].pressed,
-    ButtonDpadRight: gamepad.buttons[15].pressed,
+    ButtonDpadUp: gamepad.buttons[12]?.pressed,
+    ButtonDpadDown: gamepad.buttons[13]?.pressed,
+    ButtonDpadLeft: gamepad.buttons[14]?.pressed,
+    ButtonDpadRight: gamepad.buttons[15]?.pressed,
 
-    ButtonMode: gamepad.buttons[16].pressed,
+    ButtonMode: gamepad.buttons[16]?.pressed,
 
     AxisLeftX: gamepad.axes[0],
     AxisLeftY: gamepad.axes[1],
